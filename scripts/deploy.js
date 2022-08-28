@@ -3,15 +3,21 @@ const fs = require('fs');
 
 async function main() {
 
-  const accounts = await ethers.provider.listAccounts();
-  const MyNFTrader = await ethers.getContractFactory("MyNFTrader");
-  const myNFTrader = await MyNFTrader.deploy(accounts, 2);
+  const UrNFTrader = await ethers.getContractFactory("UrNFTrader");
+  const urNFTrader = await UrNFTrader.deploy();
 
-  await myNFTrader.deployed();
+  await urNFTrader.deployed();
 
-  console.log("MultiSig deployed to:", myNFTrader.address);
-  const config = { address: myNFTrader.address }
-  fs.writeFileSync("./src/__config.json", JSON.stringify(config, null, 2));
+  const WETHToken = await ethers.getContractFactory("WETHToken");
+  const wETHToken = await WETHToken.deploy();
+
+  await wETHToken.deployed();
+
+  console.log("urNFTrader deployed to:", urNFTrader.address);
+  console.log("WETHToken deployed to:", wETHToken.address);
+
+  const config = { urNFTraderAddress: urNFTrader.address , WETHTokenAddress: wETHToken.address };
+  fs.writeFileSync("./app/__config.json", JSON.stringify(config, null, 2));
 }
 
 main()

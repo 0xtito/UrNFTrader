@@ -5,13 +5,16 @@ pragma solidity ^0.8.0;
 // import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 // import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+// import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 // import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 
 
-contract MyNFTrader {
+contract UrNFTrader {
   address owner;
   address private wrappedEther = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+  address private wrappedEtherTestnet = 0x90Ca7407b4518eA7C6480e7F92C2E166A7bcea81;
+
+  uint baseFee = 0.01 ether;
   // user => collection address => bool
   // mapping(address => mapping(address => bool)) approvedNFTtoUse;
   // mapping(address => mapping(address => bool)) approvedEthToUse;
@@ -19,6 +22,7 @@ contract MyNFTrader {
   mapping(address => mapping(uint => BuyOrder)) buyOrderBook;
   // user => total Number of Orders (can loop through to find the current contract address)
   mapping(address => uint) orderIds;
+  mapping(address => bool) public isApprovedERC20;
 
   enum OrderStatus { Pending, Executed, Canceled}
 
@@ -42,8 +46,9 @@ contract MyNFTrader {
       1) Check for approval
       2) Set Order
       3) emit new Order
-    */ 
-    require(IERC20(wrappedEther).allowance(msg.sender, address(this)) >= _triggerPrice, "User has not approved the contract to use funds");
+    */
+    // IERC20(wrappedEther).approve(address(this), );
+    require(IERC20(wrappedEther).allowance(msg.sender, address(this)) >= _triggerPrice + baseFee, "User has not approved the contract to use funds");
     // emit ApprovalForAll(owner, operator, approved);
     (bool success, ) = payable(address(this)).call{value: _triggerPrice}("");
     require(success, "failed to place assets into contract");

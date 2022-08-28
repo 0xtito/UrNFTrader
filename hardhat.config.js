@@ -12,6 +12,10 @@ module.exports = {
   networks: {
     localhost: {
       url: "http://localhost:8545"
+    },
+    rinkeby: {
+      url: process.env.RINKEBY_API,
+      accounts: [process.env.PRIVATE_KEY]
     }
   }
 };
