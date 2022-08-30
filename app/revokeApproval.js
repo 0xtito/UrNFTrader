@@ -9,7 +9,7 @@ export default async function revokeApproval(signer, UrNFTraderContract) {
   const signerAddress = await signer.getAddress();
   const WETHcontract = new ethers.Contract(WETHTokenAddress, WETH.abi, signer);
 
-  if (await WETHcontract.allowance(signerAddress, UrNFTraderContractAddress) == 0) {
+  if (await WETHcontract.allowance(signerAddress, UrNFTraderContractAddress) < 257) {
     console.log(`No approval currently set`)
     return true;
   } else {
@@ -21,7 +21,7 @@ export default async function revokeApproval(signer, UrNFTraderContract) {
       from: signerAddress,
     });
     console.log('result', await result);
-    console.log('New allowance is:', (await WETHcontract.allowance(signerAddress, UrNFTraderContractAddress)).toString());
+    // console.log('New allowance is:', (await WETHcontract.allowance(signerAddress, UrNFTraderContractAddress)).toString());
   }
   
   WETHcontract.on('Approval', async () => {

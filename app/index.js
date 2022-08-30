@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import MyNFTrader from "./artifacts/contracts/MyNFTrader.sol/MyNFTrader.json";
+import UrNFTrader from "./artifacts/contracts/UrNFTrader.sol/UrNFTrader.json";
 import {urNFTraderAddress} from "./__config.json";
 import checkApproval from "./checkApproval";
 import revokeApproval from "./revokeApproval";
@@ -14,7 +14,7 @@ async function newOrder() {
   await ethereum.request({ method: "eth_requestAccounts" });
 
   const signer = provider.getSigner(0);
-  const contract = new ethers.Contract(urNFTraderAddress, MyNFTrader.abi, signer);
+  const contract = new ethers.Contract(urNFTraderAddress, UrNFTrader.abi, signer);
 
   if(await checkApproval(signer, contract)) {
     const nftCollectionAddress = document.getElementById('nft-contract-address').value;
@@ -30,9 +30,9 @@ async function _revokeApproval() {
   await ethereum.request({ method: "eth_requestAccounts" });
 
   const signer = provider.getSigner(0);
-  const contract = new ethers.Contract(urNFTraderAddress, MyNFTrader.abi, signer);
+  const contract = new ethers.Contract(urNFTraderAddress, UrNFTrader.abi, signer);
 
-  await revokeApproval(signer, contract);
+  revokeApproval(signer, contract);
 }
 
 async function _approveAddress() {
@@ -40,9 +40,9 @@ async function _approveAddress() {
   await ethereum.request({ method: "eth_requestAccounts" });
 
   const signer = provider.getSigner(0);
-  const contract = new ethers.Contract(urNFTraderAddress, MyNFTrader.abi, signer);
+  const contract = new ethers.Contract(urNFTraderAddress, UrNFTrader.abi, signer);
 
-  await approveAddress(signer, contract);
+  approveAddress(signer, contract);
 }
 
 document.getElementById('create-order').addEventListener('click', newOrder);

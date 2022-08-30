@@ -3,15 +3,20 @@ const fs = require('fs');
 
 async function main() {
 
-  const UrNFTrader = await ethers.getContractFactory("UrNFTrader");
-  const urNFTrader = await UrNFTrader.deploy();
-
-  await urNFTrader.deployed();
-
   const WETHToken = await ethers.getContractFactory("WETHToken");
   const wETHToken = await WETHToken.deploy();
 
   await wETHToken.deployed();
+
+  // only need to get the address for the WETH since we are deploying it - when we deploy it on rinkeby/mainnet, we can forgo this part
+  const wETHTokenAddress = wETHToken.address;
+
+  const UrNFTrader = await ethers.getContractFactory("UrNFTrader");
+  const urNFTrader = await UrNFTrader.deploy(wETHTokenAddress);
+
+  await urNFTrader.deployed();
+
+
 
   console.log("urNFTrader deployed to:", urNFTrader.address);
   console.log("WETHToken deployed to:", wETHToken.address);
