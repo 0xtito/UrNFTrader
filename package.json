@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "npx hardhat test tests/test.js",
+    "test": "npx hardhat test tests/unlockAccount.js --network localhost",
     "startInit": "npm run deployInit && npx parcel app/index.html",
     "start": "npm run deploy && npx parcel app/index.html",
     "deployInit": "npx hardhat run scripts/initialDeploy.js --network localhost",
@@ -20,6 +20,7 @@
     "@nomicfoundation/hardhat-network-helpers": "^1.0.4",
     "@opensea/stream-js": "^0.0.20",
     "@openzeppelin/contracts": "^4.7.3",
+    "api": "^4.5.2",
     "dotenv": "^16.0.1",
     "hardhat": "^2.10.2",
     "ws": "^8.8.1"
@@ -28,6 +29,14 @@
     "@nomicfoundation/hardhat-toolbox": "^1.0.2",
     "@types/phoenix": "^1.5.4",
     "chai": "^4.3.6",
-    "ethers": "^5.7.0"
+    "ethers": "^5.7.0",
+    "events": "^3.3.0",
+    "https-browserify": "^1.0.0",
+    "os-browserify": "^0.3.0",
+    "path-browserify": "^1.0.1",
+    "querystring-es3": "^0.2.1",
+    "stream-browserify": "^3.0.0",
+    "stream-http": "^3.2.0",
+    "url": "^0.11.0"
   }
 }

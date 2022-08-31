@@ -30,9 +30,10 @@ contract UrNFTrader {
 
   struct BuyOrder {
     address owner;
-    uint tiggerPrice;
+    uint triggerPrice;
     address collectionAddress;
-    OrderStatus _orderStatus;
+    OrderStatus orderStatus;
+    uint orderId;
   }
 
   constructor(address _wrappedEtherAddress) {
@@ -41,8 +42,12 @@ contract UrNFTrader {
     wrappedEtherAddress = _wrappedEtherAddress;
   }
 
-  event submittedNewBuyOrder(address indexed addr, address indexed collectionAddress, uint indexed triggerPrice);
+  event submittedNewBuyOrder(address indexed addr, address indexed collectionAddress, uint indexed orderId, uint triggerPrice);
+  // event submittedNewBuyOrder( BuyOrder currentBuyOrder, uint indexed orderId);
   event submitPriceToSell(address indexed addr, address indexed collectionAddress, uint indexed triggerPrice);
+  event canceledBuyOrder(address indexed addr, address indexed collectionAddress);
+  event canceledSellOrder(address indexed addr, address indexed collectionAddress);
+
 
   function setPriceToBuy(uint _triggerPrice, address _collectionAddress) external {
     /*
@@ -51,17 +56,23 @@ contract UrNFTrader {
       2) Set Order
       3) emit new Order
     */
+  //  _triggerPrice = _triggerPrice * (1**18);
     require(IERC20(wrappedEtherAddress).allowance(msg.sender, address(this)) >= _triggerPrice + baseFee, "User has not approved the contract to use funds");
 
     bool success = IERC20(wrappedEtherAddress).transferFrom(msg.sender, address(this), _triggerPrice + baseFee);
     require(success, "failed to place assets into contract");
-    buyOrderBook[msg.sender][orderIds[msg.sender]] = BuyOrder(msg.sender, _triggerPrice, _collectionAddress, OrderStatus.Pending);
+    buyOrderBook[msg.sender][orderIds[msg.sender]] = BuyOrder(msg.sender, _triggerPrice, _collectionAddress, OrderStatus.Pending, orderIds[msg.sender]);
+    emit submittedNewBuyOrder(msg.sender, _collectionAddress, orderIds[msg.sender], _triggerPrice);
     orderIds[msg.sender]++;
-    emit submittedNewBuyOrder(msg.sender, _collectionAddress, _triggerPrice);
+
   }
 
+  // function executeBuyOrder(BuyOrder storage _order) 
+
   function cancelOrderToBuy(uint _orderId) external {
-    // dsah dvsja vdsajh d
+    require(buyOrderBook[msg.sender][_orderId].owner != address(0) && buyOrderBook[msg.sender][_orderId].triggerPrice != 0 && buyOrderBook[msg.sender][_orderId].collectionAddress != address(0), 'order does not exist');
+    buyOrderBook[msg.sender][_orderId].orderStatus = OrderStatus.Canceled;
+    emit canceledBuyOrder(msg.sender, buyOrderBook[msg.sender][_orderId].collectionAddress);
   }
 
   // NEED TO CALL APPROVE FROM THE FRONT END

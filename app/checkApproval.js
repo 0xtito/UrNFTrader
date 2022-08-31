@@ -10,7 +10,7 @@ export default async function checkApproval(signer, UrNFTraderContract) {
   const WETHcontract = new ethers.Contract(WETHTokenAddress, WETH.abi, signer);
 
   // Not the best test, fix later
-  if (await WETHcontract.allowance(signerAddress, UrNFTraderContractAddress) > 256) {
+  if (await WETHcontract.allowance(signerAddress, UrNFTraderContractAddress) > 10000000000000) {
     console.log(`contract is approved`);
     return true;
   } else {

@@ -7,6 +7,8 @@ export default async function approveAddress(signer, mainContract) {
   const signerAddress = await signer.getAddress();
   const WETHcontract = new ethers.Contract(WETHTokenAddress, WETH.abi, signer);
 
+  console.log(await WETHcontract.balanceOf(signerAddress));
+
   if (await WETHcontract.allowance(signerAddress, UrNFTraderContractAddress) >= 257) {
     console.log('already approved')
   } else {
