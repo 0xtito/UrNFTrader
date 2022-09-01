@@ -13,10 +13,6 @@ const testTriggerPriceAndFee = BigInt(110000000000000000);
 
 describe("Testing NftTrader", function() {
   let owner, ownersAddress, account2, account3, nftContract, wETH;
-
-  async function getDeployedContract() {
-
-  }
   
 
   before(async () => {
@@ -142,7 +138,6 @@ describe("Testing NftTrader", function() {
 
         it('urNFTrader should have received the WETH', async () => {
           let contractBalance = await wETH.balanceOf(urNFTraderAddress);
-          // let numberOfDeposits = ownersOrders.length;
           expect(contractBalance).to.equal(testTriggerPriceAndFee * BigInt(ownersOrders.length))
 
         })

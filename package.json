@@ -18,6 +18,7 @@
   ],
   "dependencies": {
     "@nomicfoundation/hardhat-network-helpers": "^1.0.4",
+    "@opensea/seaport-js": "^1.0.5",
     "@opensea/stream-js": "^0.0.20",
     "@openzeppelin/contracts": "^4.7.3",
     "api": "^4.5.2",

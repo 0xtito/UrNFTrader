@@ -56,7 +56,6 @@ contract UrNFTrader {
       2) Set Order
       3) emit new Order
     */
-  //  _triggerPrice = _triggerPrice * (1**18);
     require(IERC20(wrappedEtherAddress).allowance(msg.sender, address(this)) >= _triggerPrice + baseFee, "User has not approved the contract to use funds");
 
     bool success = IERC20(wrappedEtherAddress).transferFrom(msg.sender, address(this), _triggerPrice + baseFee);

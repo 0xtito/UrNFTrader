@@ -20,11 +20,12 @@ export default async function revokeApproval(signer, UrNFTraderContract) {
     const result = await WETHcontract.decreaseAllowance(UrNFTraderContractAddress, currentAllowance, {
       from: signerAddress,
     });
-    console.log('result', await result);
+    const receipt = await result.wait();
+    console.log('receipt', await receipt);
     // console.log('New allowance is:', (await WETHcontract.allowance(signerAddress, UrNFTraderContractAddress)).toString());
   }
   
-  WETHcontract.on('Approval', async () => {
+  WETHcontract.once('Approval', async () => {
     if (await WETHcontract.allowance(signerAddress, UrNFTraderContractAddress) == 0) {
       console.log(`Account ${signerAddress} has revoked allowance from ${UrNFTraderContractAddress}`);
     };
