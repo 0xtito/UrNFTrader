@@ -1,0 +1,31 @@
+set NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+
+
+set NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+
+event_type: "item_listed"
+payload:
+base_price: "10000000000000000000"
+collection: {slug: 'tinyfrens-v2'}
+event_timestamp: "2022-09-01T22:38:29.588242+00:00"
+expiration_date: "2022-10-01T22:35:56.000000+00:00"
+is_private: false
+item:
+chain: {name: 'rinkeby'}
+metadata: {animation_url: null, image_url: 'https://lh3.googleusercontent.com/5_-uH67j-M4ZtggC…64FMmWlvZ5WclvZO1vtU_o-h6un1fdPniQomGBzaIgUx=s250', metadata_url: 'https://dweb.link/ipfs/QmbagR7GfANqhBmFESRNtQZA7YW7n6AohmRof8Njs7ZFzP/5', name: 'tinyfren #5'}
+nft_id: "rinkeby/0x874b81b49c6c2a2a939ac354d6c1f1dc20f8580d/5"
+permalink: "https://testnets.opensea.io/assets/rinkeby/0x874b81b49c6c2a2a939ac354d6c1f1dc20f8580d/5"
+[[Prototype]]: Object
+listing_date: "2022-09-01T22:35:56.000000+00:00"
+listing_type: null
+maker: {address: '0x361da2ca3cc6c1f37d2914d5acf02c4d2ccac43b'}
+order_hash: "0xe88f4a92d35251bebe12f586a9764bd768eeb6d8f9275044172affa69a4eb8ea"
+payment_token: {address: '0x0000000000000000000000000000000000000000', decimals: 18, eth_price: '1.000000000000000', name: null, symbol: 'ETH', …}
+quantity: 1
+taker: null
+[[Prototype]]: Object
+sent_at: "2022-09-01T22:38:29.761025+00:00"
+[[Prototype]]: Object

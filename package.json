@@ -21,6 +21,7 @@
     "@opensea/seaport-js": "^1.0.5",
     "@opensea/stream-js": "^0.0.20",
     "@openzeppelin/contracts": "^4.7.3",
+    "@uniswap/v3-periphery": "^1.4.1",
     "api": "^4.5.2",
     "dotenv": "^16.0.1",
     "hardhat": "^2.10.2",

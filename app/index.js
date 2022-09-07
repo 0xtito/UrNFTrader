@@ -16,6 +16,7 @@ async function newOrder() {
   const signer = provider.getSigner(0);
   const traderContract = new ethers.Contract(urNFTraderAddress, UrNFTrader.abi, signer);
 
+  // Only needed with WETH
   if(await checkApproval(signer, traderContract)) {
     const nftCollectionAddress = document.getElementById('nft-contract-address').value;
     const purchasePrice = ethers.utils.parseEther(document.getElementById('max-buy-price').value, 'wei');
@@ -23,6 +24,13 @@ async function newOrder() {
   } else {
     console.log(`Must approve use of tokens first`);
   }
+
+  // With ETH
+  console.log(`Submitting Order`);
+  const nftCollectionAddress = document.getElementById('nft-contract-address').value;
+  const purchasePrice = ethers.utils.parseEther(document.getElementById('max-buy-price').value, 'wei');
+  setBuyOrder(nftCollectionAddress, purchasePrice, {signer, traderContract} );
+  
 }
 
 async function _revokeApproval() {
@@ -31,7 +39,7 @@ async function _revokeApproval() {
 
   const signer = provider.getSigner(0);
   const traderContract = new ethers.Contract(urNFTraderAddress, UrNFTrader.abi, signer);
-
+  console.log(traderContract);
   revokeApproval(signer, traderContract);
 }
 
@@ -46,7 +54,8 @@ async function _approveAddress() {
 }
 
 document.getElementById('create-order').addEventListener('click', newOrder);
-document.getElementById('approve-account').addEventListener('click', _approveAddress);
+// Only needed when using WETH
+document.getElementById('approve-account').addEventListener('click', _approveAddress); 
 document.getElementById('revoke-approval').addEventListener('click', _revokeApproval);
 
 
