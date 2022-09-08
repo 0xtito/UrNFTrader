@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
+// pragma abicoder v2;
 
 // import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
@@ -11,11 +12,16 @@ import "./ISeaport.sol";
 // import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 // import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 
+interface IMulticall {
+  function aggregate(Call[] memory calls) public returns (uint256 blockNumber, bytes[] memory returnData) 
+};
+
 
 contract UrNFTrader is Ownable {
   // address private wrappedEther = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
   // address private wrappedEtherTestnet = 0x90Ca7407b4518eA7C6480e7F92C2E166A7bcea81;
   address public wrappedEtherAddress;
+  address public multicallAddress;
   address public seaportAddress = "0x00000000006c3852cbEf3e08E8dF289169EdE581";
   uint public baseFee = 15000000000000000 wei;
   // user => collection address => bool
@@ -37,9 +43,15 @@ contract UrNFTrader is Ownable {
     uint orderId;
   }
 
-  constructor(address _wrappedEtherAddress) {
+  struct Call {
+    address target,
+    bytes callData   
+  }
+
+  constructor(address _wrappedEtherAddress, address _multicallAddress) {
     // only need to do this for testing purposes
     wrappedEtherAddress = _wrappedEtherAddress;
+    multicallAddress = _multicallAddress;
   }
 
   event submittedNewBuyOrder(address indexed addr, address indexed collectionAddress, uint indexed orderId, uint triggerPrice);
@@ -78,12 +90,26 @@ contract UrNFTrader is Ownable {
 
   // TODO
   // GET THE ORDER ORDER PARAMETERS FROM THE FRONT END
-  function executeBuyOrder(address _user, uint _orderId, uint _purchasePrice, address _collectionAddress, uint _tokenId, BasicOrderParameters calldata parameters) external orderIsLive(_user, _orderId) returns(bool) {
-    (bool success, ) = wrappedEtherAddress.call(abi.encodeWithSignature("withdraw(uint256)", _purchasePrice));
-    require(success, 'could not unwrap ETH');
-    ISeaport(seaportAddress).
+  function executeBuyOrder(address _user, uint _orderId, uint _purchasePrice, uint _tokenId, BasicOrderParameters calldata parameters) external orderIsLive(_user, _orderId) returns(bytes[]) {
+    // (bool success, ) = wrappedEtherAddress.call(abi.encodeWithSignature("withdraw(uint256)", _purchasePrice));
+    // require(success, 'could not unwrap ETH');
+    // require(IERC20(wrappedEtherAddress).balanceOf(address(this)) = ogBalance - _purchasePrice, "Do not have enough ETH");
+    // ISeaport(seaportAddress).
 
+    Call[] memory callData = new Call[](3);
 
+    callData[0] = Call(wrappedEtherAddress, abi.encodeWithSignature("withdraw(uint256)", _purchasePrice));
+    // callData[1] = Call(seaportAddress, abi.encodeWithSignature("fulfillAdvancedOrder((address,address,(uint8,address,uint256,uint256,uint256)[],(uint8,address,uint256,uint256,uint256, address)[],uint8,uint256,uint256,bytes32,uint256,bytes32,uint256),uint120,uint120,bytes,bytes)",));
+    callData[1] = Call(seaportAddress, abi.encodeWithSignature("fulfillBasicOrder((address,uint256,uint256,address,address,address,uint256,uint256,uint8,uint256,uint256,bytes32,uint256,bytes32,bytes32,uint256,(uint256,address)[],bytes))", parameters));
+    // transfer NFT to user
+    // callData[2] = Call()
+
+    (uint blockNumber, bytes[] returnData) = IMulticall(multicallAddress).aggregate([callData[0], callData[1]]);
+
+    buyOrderBook[_user][_orderId].orderStatus = OrderStatus.Executed;
+    emit executedBuyOrder(_user, buyOrderBook[_user][_orderId].collectionAddress, _orderId, _tokenId);
+
+    return returnData;
   }
 
   modifier orderIsLive(address _user, uint _orderId) {

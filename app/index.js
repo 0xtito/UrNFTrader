@@ -8,6 +8,7 @@ import setBuyOrder from "./setBuyOrder";
 import "./index.css"
 //test
 // import createOrder from "./testSeaport/createOrder.mjs";
+import executeOrder from "./executeOrder";
 
 async function newOrder() {
   const provider = new ethers.providers.Web3Provider(ethereum);
@@ -15,6 +16,11 @@ async function newOrder() {
 
   const signer = provider.getSigner(0);
   const traderContract = new ethers.Contract(urNFTraderAddress, UrNFTrader.abi, signer);
+  // console.log(traderContract);
+
+  // const ItraderContract = new ethers.utils.Interface(UrNFTrader.abi);
+  // console.log(ItraderContract.getSighash("setPriceToBuy(address)"));
+
 
   // Only needed with WETH
   if(await checkApproval(signer, traderContract)) {

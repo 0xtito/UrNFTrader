@@ -13,6 +13,9 @@ const client = new OpenSeaStreamClient({
   }
 });
 
+
+
+
 export default async function listenForListing(orderInfo, contractInfo) {
   let collectionSlug;
 

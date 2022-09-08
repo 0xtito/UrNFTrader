@@ -4,6 +4,7 @@ pragma solidity >=0.8.7;
 // prettier-ignore
 import {
     BasicOrderParameters,
+    OrderParameters,
     OrderComponents,
     Fulfillment,
     FulfillmentComponent,
