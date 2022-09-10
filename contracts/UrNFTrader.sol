@@ -1,28 +1,32 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
-// pragma abicoder v2;
+pragma solidity ^0.8.7;
+pragma abicoder v2;
 
 // import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
+// import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 // import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./ISeaport.sol";
+import "./IMulticall.sol";
+// import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 // import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 // import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 
-interface IMulticall {
-  function aggregate(Call[] memory calls) public returns (uint256 blockNumber, bytes[] memory returnData) 
-};
 
+/*
+TODO:
+FIGURE OUT HOW TO CREATE THE STRUCT INHERETED FROM IMULTICALL
+*/
 
-contract UrNFTrader is Ownable {
+contract UrNFTrader is Ownable, IMulticall {
   // address private wrappedEther = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
   // address private wrappedEtherTestnet = 0x90Ca7407b4518eA7C6480e7F92C2E166A7bcea81;
   address public wrappedEtherAddress;
   address public multicallAddress;
-  address public seaportAddress = "0x00000000006c3852cbEf3e08E8dF289169EdE581";
+  address public seaportAddress = 0x00000000006c3852cbEf3e08E8dF289169EdE581;
   uint public baseFee = 15000000000000000 wei;
   // user => collection address => bool
   // mapping(address => mapping(address => bool)) approvedNFTtoUse;
@@ -33,21 +37,17 @@ contract UrNFTrader is Ownable {
   mapping(address => uint) public orderIds;
   mapping(address => bool) public isApprovedERC20;
 
-  enum OrderStatus { Inactive, Pending, Executed, Canceled}
+  enum OrderStatusMain { Inactive, Pending, Executed, Canceled}
 
   struct BuyOrder {
     address owner;
     uint triggerPrice;
     address collectionAddress;
-    OrderStatus orderStatus;
+    OrderStatusMain orderStatus;
     uint orderId;
   }
-
-  struct Call {
-    address target,
-    bytes callData   
-  }
-
+  
+  
   constructor(address _wrappedEtherAddress, address _multicallAddress) {
     // only need to do this for testing purposes
     wrappedEtherAddress = _wrappedEtherAddress;
@@ -55,7 +55,7 @@ contract UrNFTrader is Ownable {
   }
 
   event submittedNewBuyOrder(address indexed addr, address indexed collectionAddress, uint indexed orderId, uint triggerPrice);
-  event executedBuyOrder(address indexed addr, address indexed collectionAddress, uint indexed orderId, uint tokenId);
+  event executedBuyOrder(address indexed addr, address indexed collectionAddress, uint indexed tokenId);
   // event submittedNewBuyOrder( BuyOrder currentBuyOrder, uint indexed orderId);
   event submitPriceToSell(address indexed addr, address indexed collectionAddress, uint indexed triggerPrice);
   event canceledBuyOrder(address indexed addr, address indexed collectionAddress);
@@ -74,7 +74,7 @@ contract UrNFTrader is Ownable {
 
     bool success = IERC20(wrappedEtherAddress).transferFrom(msg.sender, address(this), _triggerPrice + baseFee);
     require(success, "failed to place assets into contract");
-    buyOrderBook[msg.sender][orderIds[msg.sender]] = BuyOrder(msg.sender, _triggerPrice, _collectionAddress, OrderStatus.Pending, orderIds[msg.sender]);
+    buyOrderBook[msg.sender][orderIds[msg.sender]] = BuyOrder(msg.sender, _triggerPrice, _collectionAddress, OrderStatusMain.Pending, orderIds[msg.sender]);
     emit submittedNewBuyOrder(msg.sender, _collectionAddress, orderIds[msg.sender], _triggerPrice);
     orderIds[msg.sender]++;
   }
@@ -90,36 +90,43 @@ contract UrNFTrader is Ownable {
 
   // TODO
   // GET THE ORDER ORDER PARAMETERS FROM THE FRONT END
-  function executeBuyOrder(address _user, uint _orderId, uint _purchasePrice, uint _tokenId, BasicOrderParameters calldata parameters) external orderIsLive(_user, _orderId) returns(bytes[]) {
+  event CheckBytesArray(bytes[] indexed _bytesArray);
+  function executeBuyOrder(address _user, uint _orderId, uint _tokenId, bytes calldata _fulfillbasicOrder) external payable orderIsLive(_user, _orderId) onlyOwner() returns(bytes[] memory) {
     // (bool success, ) = wrappedEtherAddress.call(abi.encodeWithSignature("withdraw(uint256)", _purchasePrice));
     // require(success, 'could not unwrap ETH');
     // require(IERC20(wrappedEtherAddress).balanceOf(address(this)) = ogBalance - _purchasePrice, "Do not have enough ETH");
     // ISeaport(seaportAddress).
 
-    Call[] memory callData = new Call[](3);
+    // IMulticall(multicallAddress).Call = new IMulticall(multicallAddress).Call[](3);
 
-    callData[0] = Call(wrappedEtherAddress, abi.encodeWithSignature("withdraw(uint256)", _purchasePrice));
-    // callData[1] = Call(seaportAddress, abi.encodeWithSignature("fulfillAdvancedOrder((address,address,(uint8,address,uint256,uint256,uint256)[],(uint8,address,uint256,uint256,uint256, address)[],uint8,uint256,uint256,bytes32,uint256,bytes32,uint256),uint120,uint120,bytes,bytes)",));
-    callData[1] = Call(seaportAddress, abi.encodeWithSignature("fulfillBasicOrder((address,uint256,uint256,address,address,address,uint256,uint256,uint8,uint256,uint256,bytes32,uint256,bytes32,bytes32,uint256,(uint256,address)[],bytes))", parameters));
-    // transfer NFT to user
-    // callData[2] = Call()
+    // swap ETH for WETH
+    // callData[0] = Call(wrappedEtherAddress, abi.encodeWithSignature("withdraw(uint256)", buyOrderBook[_user][_orderId].triggerPrice));
+    // Buy NFT
+    // callData[1] = Call(seaportAddress, _fulfillbasicOrder);
+    // Send NFT to user
+    // callData[2] = Call(buyOrderBook[_user][_orderId].collectionAddress, abi.encodeWithSignature("safeTransferFrom(address,address,uint256)", address(this), _user, _tokenId));
 
-    (uint blockNumber, bytes[] returnData) = IMulticall(multicallAddress).aggregate([callData[0], callData[1]]);
+    // ******************
 
-    buyOrderBook[_user][_orderId].orderStatus = OrderStatus.Executed;
-    emit executedBuyOrder(_user, buyOrderBook[_user][_orderId].collectionAddress, _orderId, _tokenId);
+    // *******************
+    // Call Multicall
+    (uint blockNumber, bytes[] memory returnData) = IMulticall(multicallAddress).aggregate([Call(wrappedEtherAddress, abi.encodeWithSignature("withdraw(uint256)", buyOrderBook[_user][_orderId].triggerPrice))]);
+    emit CheckBytesArray(returnData);
+
+    buyOrderBook[_user][_orderId].orderStatus = OrderStatusMain.Executed;
+    emit executedBuyOrder(_user, buyOrderBook[_user][_orderId].collectionAddress, _tokenId);
 
     return returnData;
   }
 
   modifier orderIsLive(address _user, uint _orderId) {
-    require(buyOrderBook[_user][_orderId].orderStatus == OrderStatus.Pending && buyOrderBook[_user][_orderId].triggerPrice != 0, "Order is Pending");
+    require(buyOrderBook[_user][_orderId].orderStatus == OrderStatusMain.Pending && buyOrderBook[_user][_orderId].triggerPrice != 0, "Order is Pending");
     _;
   }
 
   // with WETH
   function cancelOrderToBuy(uint _orderId) external orderIsLive(msg.sender, _orderId) {
-    buyOrderBook[msg.sender][_orderId].orderStatus = OrderStatus.Canceled;
+    buyOrderBook[msg.sender][_orderId].orderStatus = OrderStatusMain.Canceled;
     bool success = IERC20(wrappedEtherAddress).transferFrom(address(this), msg.sender, buyOrderBook[msg.sender][_orderId].triggerPrice + baseFee);
     require(success, "failed to place assets into contract");
     emit canceledBuyOrder(msg.sender, buyOrderBook[msg.sender][_orderId].collectionAddress);
@@ -165,7 +172,6 @@ contract UrNFTrader is Ownable {
         buyOrders[i] = buyOrderBook[msg.sender][i];
     }
     return buyOrders;
-
   }
 
   function withdraw() external onlyOwner() {

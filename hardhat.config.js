@@ -5,7 +5,7 @@ require('ethers');
 require('dotenv').config();
 
 module.exports = {
-  solidity: "0.8.1",
+  solidity: "0.8.7",
   paths: {
     artifacts: "./app/artifacts",
   },

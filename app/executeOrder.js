@@ -1,13 +1,15 @@
 import { Seaport } from '@opensea/seaport-js';
 import { ethers } from 'ethers';
+import UrNFTrader from './artifacts/contracts/UrNFTrader.sol/UrNFTrader.json';
 import { UniswapRouterArtifact } from '@uniswap/v3-periphery/artifacts/contracts/SwapRouter.sol/SwapRouter.json';
 import swapETH from './swapETH';
 import { Chain, Common, Hardfork } from '@ethereumjs/common';
 import { FeeMarketEIP1559Transaction } from '@ethereumjs/tx';
+import {orders} from '../orderObject.json'
 require('dotenv').config()
 
 const rinkebyAPI = process.env.RINKEBY_API;
-const privKey2 = process.env.PRIVATE_KEY2;
+const privKey = process.env.PRIVATE_KEY;
 const common = new Common({ chain: Chain.Rinkeby, hardfork: Hardfork.London });
 
 // const provider = new ethers.providers.Web3Provider(ethereum);
@@ -90,44 +92,70 @@ export default async function executeOrder(orderInfo, contractInfo, orderEvent, 
   const { signer, traderContract } = contractInfo
   const offererAddress = orderEvent.maker.address;
   const listedTimeInSeconds = new Date(orderEvent.payload.listing_date).getTime()/1000;
+  const zeroHash = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  // const zeroHash = '0x0'
+
+  const ItraderContract = new ethers.utils.Interface(UrNFTrader.abi);
+  const abi = ethers.utils.defaultAbiCoder;
 
 
-  let order;
+
+  let order = await getResponse();
   let success;
-  let parameters;
 
-  fetch(`https://testnets-api.opensea.io/v2/orders/rinkeby/seaport/listings?asset_contract_address=${collectionAddress}&limit=1&token_ids=${tokenId}`, options)
-    .then(response => response.json())
-    .then(response => {
-      order = response.orders[0];
-      console.log(`order:` + order);
-      parameters = {
-        considerationToken: order.protocol_data.consideration[0].token,
-        considerationIdentifier: order.protocol_data.consideration[0].identifierOrCriteria,
-        considerationAmount: order.protocol_data.consideration[0].startAmount + order.protocol_data.consideration[1].startAmount,
-        offerer: order.protocol.parameters.offerer,
-        zone: order.protocol_data.parameters.zone,
-        offerToken: order.protocol_data.parameters.offer.ItemType,
-        offerIdentifier: order.protocol_data.offer.identifierOrCriteria,
-        offerAmount: order.protocol_data.offer.startAmount,
-        basicOrderType: order.protocol_data.orderType,
-        startTime: order.listing_time,
-        endTime: order.expiration_time,
-        zoneHash: order.protocol_data.parameters.zoneHash,
-        salt: order.protocol_data.parameters.salt,
-      };
-      sendOrderToSeaport(userAddress, orderId, triggerPrice, tokenId, parameters, traderContract);
-    })
-    .catch(err => {
-      console.error(err)
-      return;
-    });
+  let parameters = {
+    considerationToken: orders[0].protocol_data.parameters.consideration[0].token,
+    considerationIdentifier: orders[0].protocol_data.parameters.consideration[0].identifierOrCriteria,
+    considerationAmount: orders[0].protocol_data.parameters.consideration[0].startAmount + orders[0].protocol_data.parameters.consideration[1].startAmount,
+    offerer: orders[0].protocol_data.parameters.offerer,
+    zone: orders[0].protocol_data.parameters.zone,
+    offerToken: orders[0].protocol_data.parameters.offer[0].token,
+    offerIdentifier: parseFloat(orders[0].protocol_data.parameters.offer[0].identifierOrCriteria),
+    offerAmount: parseFloat(orders[0].protocol_data.parameters.offer[0].startAmount),
+    basicOrderType: orders[0].protocol_data.parameters.orderType,
+    startTime: orders[0].listing_time,
+    endTime: orders[0].expiration_time,
+    zoneHash: orders[0].protocol_data.parameters.zoneHash,
+    salt: orders[0].protocol_data.parameters.salt,
+    signature: orders[0].protocol_data.signature
+  };
+  
+  const encodedParams = abi.encode(
+    ["tuple(address considerationToken, uint256 considerationIdentifier, uint256 considerationAmount, address offerer, address zone, address offerToken, uint256 offerIdentifier, uint256 offerAmount, uint8 basicOrderType, uint256 startTime, uint256 endTime, bytes32 zoneHash, uint256 salt, bytes32 offererConduitKey, bytes32 fulfillerConduitKey, uint256 totalOriginalAdditionalRecipients,uint8[] additionalRecipients, bytes signature)"],
+    [ [parameters.considerationToken, parameters.considerationIdentifier, parameters.considerationAmount, parameters.offerer, parameters.zone, parameters.offerToken, parameters.offerIdentifier, parameters.offerAmount, parameters.basicOrderType, parameters.startTime, parameters.endTime, parameters.zoneHash, parameters.salt, zeroHash, zeroHash, 0, [], parameters.signature] ]
+  );
 
-    // const txData = {
-    //   data: 
-    // }
+  const values = [
+    userAddress,
+    orderId,
+    tokenId,
+    encodedParams
+  ]
 
-    await console.log(parameters);
+  const callExecuteOrderData = ItraderContract.encodeFunctionData("executeBuyOrder", [ values ]);
+
+  const abiEncode = ethers.utils.defaultAbiCoder;
+  const dataHex = abiEncode.encode()
+
+  const txData = {
+
+  };
+    
+  const tx = FeeMarketEIP1559Transaction.fromTxData(txData, { common });
+
+}
+
+async function getResponse(collectionAddress, tokenId) {
+  const options = {method: 'GET', headers: {Accept: 'application/json'}};
+  const response = await fetch(
+    `https://testnets-api.opensea.io/v2/orders/rinkeby/seaport/listings?asset_contract_address=${collectionAddress}&limit=1&token_ids=${tokenId}`, options);
+
+  if (!response.ok) {
+    throw new Error(`Failed to retrieve listing info: ${response.status}`);
+  }
+  const data = await response.json();
+  return await data.orders[0];
+
 
 }
 
