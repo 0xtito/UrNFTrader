@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import WETH from './artifacts/contracts/WETHToken.sol/WETHToken.json';
+import WETH from './JSON/WETHabi.json';
 import { WETHTokenAddress } from "./__config.json"
 
 export default async function checkApproval(signer, UrNFTraderContract) {

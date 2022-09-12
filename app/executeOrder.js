@@ -9,7 +9,8 @@ import {orders} from '../orderObject.json'
 require('dotenv').config()
 
 const rinkebyAPI = process.env.RINKEBY_API;
-const privKey = process.env.PRIVATE_KEY;
+// Account 2
+const privKey = process.env.PRIVATE_KEY2;
 const common = new Common({ chain: Chain.Rinkeby, hardfork: Hardfork.London });
 
 // const provider = new ethers.providers.Web3Provider(ethereum);
@@ -26,73 +27,16 @@ const WETHMainnet = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
     sign and send the transaction using my EOA (this is what makes it centralized)
   */
 
-
-// const { executeAllActions } = await seaport.createOrder();
-// await executeAllActions;
-// const { executeAllActions: executeAllFulfillActions } = await seaport.fulfillOrder();
-
-  /*
-  fulfill order takes:
-  fulfillOrder({ order, unitsToFill, offerCriteria, considerationCriteria, tips, extraData, accountAddress, conduitKey, recipientAddress, }: {
-        order: OrderWithCounter;
-        unitsToFill?: BigNumberish;
-        offerCriteria?: InputCriteria[];
-        considerationCriteria?: InputCriteria[];
-        tips?: TipInputItem[];
-        extraData?: string;
-        accountAddress?: string;
-        conduitKey?: string;
-        recipientAddress?: string;
-    }): Promise<OrderUseCase<ExchangeAction<ContractMethodReturnType<SeaportContract, "fulfillBasicOrder" | "fulfillOrder" | "fulfillAdvancedOrder">>>>;
-
-  export declare type OrderWithCounter = {
-    parameters: OrderComponents;
-    signature: string;
-  };
-  which is essentially OrderParameters, counter, signature
-  with the orderComponents being:
-  export declare type OrderParameters = {
-    offerer: string;
-    zone: string;
-    orderType: OrderType;
-    startTime: BigNumberish;
-    endTime: BigNumberish;
-    zoneHash: string;
-    salt: string;
-    offer: OfferItem[];
-    consideration: ConsiderationItem[];
-    totalOriginalConsiderationItems: BigNumberish;
-    conduitKey: string;
-};
-export declare type OrderComponents = OrderParameters & {
-    counter: number;
-};
-type OfferItem = {
-    itemType: ItemType;
-    token: string;
-    identifierOrCriteria: string;
-    startAmount: string;
-    endAmount: string;
-}
-type ConsiderationItem = {
-    itemType: ItemType;
-    token: string;
-    identifierOrCriteria: string;
-    startAmount: string;
-    endAmount: string;
-    recipient: string;
-}
-  */
-
-
 export default async function executeOrder(orderInfo, contractInfo, orderEvent, tokenId) {
 
   const options = {method: 'GET', headers: {Accept: 'application/json'}};
   const { userAddress, collectionAddress, orderId, triggerPrice } = orderInfo;
   const { signer, traderContract } = contractInfo
   const offererAddress = orderEvent.maker.address;
+  // const orders = orderEvent.orders[0];
   const listedTimeInSeconds = new Date(orderEvent.payload.listing_date).getTime()/1000;
   const zeroHash = "0x0000000000000000000000000000000000000000000000000000000000000000"
+  const zeroAddress = "0x0000000000000000000000000000000000000000";
   // const zeroHash = '0x0'
 
   const ItraderContract = new ethers.utils.Interface(UrNFTrader.abi);
@@ -100,49 +44,100 @@ export default async function executeOrder(orderInfo, contractInfo, orderEvent, 
 
 
 
-  let order = await getResponse();
+  // let orders = orders;
   let success;
 
+
+  // considerationToken1: orders.protocol_data.parameters.consideration[0].token,
+  //   considerationItemType1: orders.protocol_data.parameters.consideration[0].itemType,
+  //   considerationIdentifier1: orders.protocol_data.parameters.consideration[0].identifierOrCriteria,
+  //   considerationStartAmount1: orders.protocol_data.parameters.consideration[0].startAmount,
+  //   considerationEndAmount1: orders.protocol_data.parameters.consideration[1].endAmount,
+  //   considerationToken2: orders.protocol_data.parameters.consideration[1].token,
+  //   considerationItemType2: orders.protocol_data.parameters.consideration[1].itemType,
+  //   considerationIdentifier2: orders.protocol_data.parameters.consideration[1].identifierOrCriteria,
+  //   considerationStartAmount2: orders.protocol_data.parameters.consideration[1].startAmount,
+  //   considerationEndAmount2: orders.protocol_data.parameters.consideration[1].endAmount,
+
   let parameters = {
-    considerationToken: orders[0].protocol_data.parameters.consideration[0].token,
-    considerationIdentifier: orders[0].protocol_data.parameters.consideration[0].identifierOrCriteria,
-    considerationAmount: orders[0].protocol_data.parameters.consideration[0].startAmount + orders[0].protocol_data.parameters.consideration[1].startAmount,
-    offerer: orders[0].protocol_data.parameters.offerer,
-    zone: orders[0].protocol_data.parameters.zone,
-    offerToken: orders[0].protocol_data.parameters.offer[0].token,
-    offerIdentifier: parseFloat(orders[0].protocol_data.parameters.offer[0].identifierOrCriteria),
-    offerAmount: parseFloat(orders[0].protocol_data.parameters.offer[0].startAmount),
-    basicOrderType: orders[0].protocol_data.parameters.orderType,
-    startTime: orders[0].listing_time,
-    endTime: orders[0].expiration_time,
-    zoneHash: orders[0].protocol_data.parameters.zoneHash,
-    salt: orders[0].protocol_data.parameters.salt,
-    signature: orders[0].protocol_data.signature
+    considerations: [],
+    offerer: orders.protocol_data.parameters.offerer,
+    zone: orders.protocol_data.parameters.zone,
+    offerToken: orders.protocol_data.parameters.offer[0].token,
+    offerIdentifier: parseFloat(orders.protocol_data.parameters.offer[0].identifierOrCriteria),
+    offerStartAmount: parseFloat(orders.protocol_data.parameters.offer[0].startAmount),
+    offerEndAmount: parseFloat(orders.protocol_data.parameters.offer[0].endAmount),
+    basicOrderType: orders.protocol_data.parameters.orderType,
+    startTime: orders.listing_time,
+    endTime: orders.expiration_time,
+    zoneHash: orders.protocol_data.parameters.zoneHash,
+    salt: orders.protocol_data.parameters.salt,
+    counter: orders.protocol_data.parameters.counter,
+    signature: orders.protocol_data.signature,
+    conduitKey: orders.protocol_data.parameters.conduitKey,
   };
   
+  let considerationItemsTuple = [];
+  let considerationsArr = orders.protocol_data.parameters.consideration;
+  for (let i = 0; i < considerationsArr.length; i++) {
+    let newConsideration = {
+      token: orders.protocol_data.parameters.consideration[i].token,
+      itemType: orders.protocol_data.parameters.consideration[i].itemType,
+      identifierOrCriteria: orders.protocol_data.parameters.consideration[i].identifierOrCriteria,
+      startAmount: orders.protocol_data.parameters.consideration[i].startAmount,
+      endAmount: orders.protocol_data.parameters.consideration[i].endAmount,
+      recipient: orders.protocol_data.parameters.consideration[i].recipient
+    }
+    parameters.considerations.push(newConsideration);
+    considerationItemsTuple.push([newConsideration.itemType, parameters.considerations[i].token, parameters.considerations[i].identifierOrCriteria, parameters.considerations[i].startAmount, parameters.considerations[i].endAmount, parameters.considerations[i].recipient])
+  }
+  
+  console.log(considerationItemsTuple)
+  
+  // fulfillAdvanced Order
   const encodedParams = abi.encode(
-    ["tuple(address considerationToken, uint256 considerationIdentifier, uint256 considerationAmount, address offerer, address zone, address offerToken, uint256 offerIdentifier, uint256 offerAmount, uint8 basicOrderType, uint256 startTime, uint256 endTime, bytes32 zoneHash, uint256 salt, bytes32 offererConduitKey, bytes32 fulfillerConduitKey, uint256 totalOriginalAdditionalRecipients,uint8[] additionalRecipients, bytes signature)"],
-    [ [parameters.considerationToken, parameters.considerationIdentifier, parameters.considerationAmount, parameters.offerer, parameters.zone, parameters.offerToken, parameters.offerIdentifier, parameters.offerAmount, parameters.basicOrderType, parameters.startTime, parameters.endTime, parameters.zoneHash, parameters.salt, zeroHash, zeroHash, 0, [], parameters.signature] ]
+    ["tuple(address offerer, address zone, tuple(uint8 itemType, address token, uint256 identifierOrCriteria, uint256 startAmount, uint256 endAmount)[] offer, tuple(uint8 itemType, address token, uint256 identifierOrCriteria, uint256 startAmount, uint256 endAmount, address recipient)[] consideration, uint8 orderType, uint256 startTime, uint256 endTime, bytes32 zoneHash, uint256 salt, bytes32 conduitKey, uint256 counter) parameters", "uint120 numerator", "uint120 denominator", "bytes signature", "bytes extraData"],
+    [ [parameters.offerer, parameters.zone, [[2, parameters.offerToken, parameters.offerIdentifier, parameters.offerStartAmount, parameters.offerEndAmount]], considerationItemsTuple, parameters.basicOrderType, parameters.startTime, parameters.endTime, parameters.zoneHash, parameters.salt, parameters.conduitKey, parameters.counter], 1, 1, parameters.signature, zeroHash] 
   );
+  // fulfillBasicOrder
+  // const encodedParams = abi.encode(
+  //   ["tuple(address considerationToken, uint256 considerationIdentifier, uint256 considerationAmount, address offerer, address zone, address offerToken, uint256 offerIdentifier, uint256 offerAmount, uint8 basicOrderType, uint256 startTime, uint256 endTime, bytes32 zoneHash, uint256 salt, bytes32 offererConduitKey, bytes32 fulfillerConduitKey, uint256 totalOriginalAdditionalRecipients,uint8[] additionalRecipients, bytes signature)"],
+  //   [ [parameters.considerationToken, parameters.considerationIdentifier, parameters.considerationAmount, parameters.offerer, parameters.zone, parameters.offerToken, parameters.offerIdentifier, parameters.offerAmount, parameters.basicOrderType, parameters.startTime, parameters.endTime, parameters.zoneHash, parameters.salt, zeroHash, zeroHash, 0, [], parameters.signature] ]
+  // );
+
 
   const values = [
     userAddress,
     orderId,
     tokenId,
     encodedParams
-  ]
+  ];
 
   const callExecuteOrderData = ItraderContract.encodeFunctionData("executeBuyOrder", [ values ]);
 
-  const abiEncode = ethers.utils.defaultAbiCoder;
-  const dataHex = abiEncode.encode()
+  const centralWallet = new ethers.Wallet(privKey,provider);
+  const centralWalletAddress = await centralWallet.getAddress();
 
-  const txData = {
+  const feeData = await provider.getFeeData();
 
-  };
-    
-  const tx = FeeMarketEIP1559Transaction.fromTxData(txData, { common });
+  const tx = {
+    from: centralWalletAddress,
+    to: traderContract.address,
+    data: callExecuteOrderData,
+    gasPrice: feeData.gasPrice,
+    nonce: await provider.getTransactionCount(centralWalletAddress)
+  }
+  tx.gasLimit = await provider.estimateGas(tx);
+  console.log(tx)
+  const signed = await centralWallet.signTransaction(tx);
+  console.log(signed);
+  const sendTx = await provider.sendTransaction(signed);
+  console.log(sendTx);
+  const receipt = await sendTx.wait();
 
+  let events = receipt.logs.map( (log) => ItraderContract.parseLog(log));
+  console.log(events);
+  
 }
 
 async function getResponse(collectionAddress, tokenId) {

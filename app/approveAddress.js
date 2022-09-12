@@ -1,13 +1,15 @@
 import { ethers } from 'ethers';
-import WETH from './artifacts/contracts/WETHToken.sol/WETHToken.json';
+import WETHabi from './JSON/WETHabi.json';
 import { WETHTokenAddress } from "./__config.json"
 
 export default async function approveAddress(signer, mainContract) {
   const UrNFTraderContractAddress = await mainContract.address;
   const signerAddress = await signer.getAddress();
-  const WETHcontract = new ethers.Contract(WETHTokenAddress, WETH.abi, signer);
+  const WETHcontract = new ethers.Contract(WETHTokenAddress, WETHabi, signer);
 
-  if (await WETHcontract.allowance(signerAddress, UrNFTraderContractAddress) >= 257) {
+  console.log(await WETHcontract.allowance(signerAddress, UrNFTraderContractAddress))
+
+  if (await WETHcontract.allowance(signerAddress, UrNFTraderContractAddress) >= 10000) {
     console.log('already approved')
   } else {
     const tx = (await WETHcontract.approve(UrNFTraderContractAddress, BigInt(((2**256) - 1) /(10**18))));

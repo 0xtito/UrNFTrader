@@ -19,16 +19,20 @@ const client = new OpenSeaStreamClient({
 export default async function listenForListing(orderInfo, contractInfo) {
   let collectionSlug;
 
-  fetch(`https://testnets-api.opensea.io/api/v1/asset_contract/${orderInfo.collectionAddress}`, options)
+  const { userAddress, collectionAddress, orderId, triggerPrice } = orderInfo
+
+  // get collection slug
+  fetch(`https://testnets-api.opensea.io/api/v1/asset_contract/${collectionAddress}`, options)
   .then(response => response.json())
   .then(response => {
-    collectionSlug = response.slug;
+    console.log(response);
+    collectionSlug = response.collection.slug;
     console.log(collectionSlug);
   })
   .catch(err => console.error(err));
   
 
-  const triggerPrice = orderInfo.triggerPrice;
+  // const triggerPrice = orderInfo.triggerPrice;
   
   // I also need to pass the tokenId of the NFT that bases the requirement
   client.onItemListed(collectionSlug, (event) => {

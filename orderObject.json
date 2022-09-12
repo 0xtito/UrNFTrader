@@ -1,7 +1,8 @@
 {
   "next": null,
   "previous": null,
-  "orders": [
+  // orders should be an array
+  "orders": // [
     {
       "created_date": "2022-09-01T22:38:29.569450",
       "closing_date": "2022-10-01T22:35:56",
@@ -332,5 +333,5 @@
         "seaport_sell_orders": null
       }
     }
-  ]
+  // ]
 }

@@ -24,7 +24,7 @@ async function main() {
   console.log("urNFTrader deployed to:", urNFTrader.address);
   // console.log("WETHToken deployed to:", wETHToken.address);
 
-  const config = { urNFTraderAddress: urNFTrader.address , WETHTokenAddress: WETHRinkeby, muulticallAddress: multicallAddress };
+  const config = { urNFTraderAddress: urNFTrader.address , WETHTokenAddress: WETHRinkeby, multicallAddress: multicallAddress };
   // const config = { urNFTraderAddress: urNFTrader.address};
   fs.writeFileSync("./app/__config.json", JSON.stringify(config, null, 2));
 }

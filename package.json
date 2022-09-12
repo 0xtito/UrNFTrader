@@ -8,7 +8,8 @@
     "startInit": "npm run deployInit && npx parcel app/index.html",
     "start": "npm run deploy && npx parcel app/index.html",
     "deployInit": "npx hardhat run scripts/initialDeploy.js --network localhost",
-    "deploy": "npx hardhat run scripts/mainDeployment.js --network localhost"
+    "deploy": "npx hardhat run scripts/mainDeployment.js --network localhost",
+    "mainTest": "npx hardhat test tests/mainTest.js"
   },
   "keywords": [],
   "author": "",

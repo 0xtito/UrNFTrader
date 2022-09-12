@@ -10,16 +10,13 @@ let num = 0
 
 
 export default async function setBuyOrder(nftCollectionAddress, purchasePrice, contractInfo ) {
-  const { signer, traderContract } = contractInfo;
+  const { signer, traderContract, provider } = contractInfo;
   const signerAddress = await signer.getAddress();
+  const gasLimit = await provider.getFeeData();
   // const traderContractAddress = await traderContract.address;
   // const WETHcontract = new ethers.Contract(WETHTokenAddress, WETH.abi, signer);
 
-  // console.log(await contract.buyOrderBook(signerAddress, 0))
-  console.log(purchasePrice);
-  console.log(await purchasePrice.toString())
-  console.log(ethers.utils.parseUnits('50', 'gwei'));
-  const tx = await traderContract.setPriceToBuy(nftCollectionAddress, {from: signerAddress,  gasLimit: '252667', value: purchasePrice });
+  const tx = await traderContract.setPriceToBuy(purchasePrice, nftCollectionAddress);
   const receipt = await tx.wait();
   console.log(receipt)
   
