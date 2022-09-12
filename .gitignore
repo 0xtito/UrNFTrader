@@ -8,4 +8,4 @@ app/__config.json
 contracts/WETHTOKEN.SOL
 NftContract/Tinyfrens.json
 cache
-.cache
+.cache/out
