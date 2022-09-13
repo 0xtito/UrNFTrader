@@ -100,6 +100,8 @@ describe("Testing NftTrader", function() {
         expect(await accountTwosBalance).to.equal(0);
       });
 
+      it('Should list the nft on opensea')
+
       /*
       All tests pass, so at this we know we can fork the rinkeby testnet, run it locally, use the NFT contract, and interact with the blockchain using three different accounts.
       TODO:
@@ -123,7 +125,7 @@ describe("Testing NftTrader", function() {
         // const UrNFTrader = await ethers.getContractFactory("UrNFTrader", owner);
         // const urNFTrader = await UrNFTrader.deploy();
         // await urNFTrader.deployed();
-
+        // Create orders
 
         numberOfOrders = (await urNFTrader.orderIds(ownersAddress)).toNumber();
         if ( numberOfOrders != 0) {

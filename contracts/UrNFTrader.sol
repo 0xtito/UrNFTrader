@@ -84,8 +84,11 @@ contract UrNFTrader is Ownable, ERC721Holder {
     // require(IERC20(wrappedEtherAddress).balanceOf(address(this)) = ogBalance - _purchasePrice, "Do not have enough ETH");
     // ISeaport(seaportAddress).
 
-    IMulticall3.Call3Value[] memory calls = new IMulticall3.Call3Value[](3)
+    IMulticall3.Call3Value[] memory calls = new IMulticall3.Call3Value[](3);
+    calls[0] = IMulticall3.Call3Value(wrappedEtherAddress, false, abi.encodeWithSignature("withdraw(uint256)", buyOrderBook[_user][_orderId].triggerPrice))
+    calls[1] = 
 
+    // multicall(multicallAddress).aggregate3Value()
   
     // // Create calldata for each execution
     // Call[] memory calldatas = new Call[](3);

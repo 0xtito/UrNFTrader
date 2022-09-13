@@ -5,7 +5,7 @@
         unitsToFill?: BigNumberish;
         offerCriteria?: InputCriteria[];
         considerationCriteria?: InputCriteria[];
-        tips?: TipInputItem[];
+        tips?: TipInputItem[];  
         extraData?: string;
         accountAddress?: string;
         conduitKey?: string;
