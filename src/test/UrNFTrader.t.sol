@@ -5,12 +5,7 @@ import {DSTest} from "../../lib/ds-test/src/test.sol";
 
 import { UrNFTrader } from "../UrNFTrader.sol";
 import { IMulticall3 } from "./mocks/IMulticall3.sol";
-
-interface WETH {
-    function balanceOf(address) external returns (uint);
-    function deposit() external payable;
-    function withdraw(uint) external;
-}
+import { WETH } from "../../lib/solmate/tokens/WETH.sol";
 
 contract UrNFTraderTest is DSTest {
     UrNFTrader urnftrader;
