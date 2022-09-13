@@ -32,7 +32,7 @@ contract UrNFTraderTest is DSTest {
         // assertEq(weth.balanceOf(address(this)), 0.5 ether);
     }
 
-    function testMultiCall() public {
+    function testMultiCall() view public {
         IMulticall3.Call3Value[] memory calls = new IMulticall3.Call3Value[](3);
         calls[0] = IMulticall3.Call3Value(wethAddress, false, 1, abi.encodeWithSignature("deposit()"));
     }

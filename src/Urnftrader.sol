@@ -79,12 +79,13 @@ contract UrNFTrader is Ownable, ERC721Holder {
   // TODO
   // GET THE ORDER ORDER PARAMETERS FROM THE FRONT END
   event CheckBytesArray(bytes[] indexed _bytesArray);
-  function executeBuyOrder(address _user, uint _orderId, uint _tokenId, bytes calldata _fulfullAdvancedOrder) external payable orderIsLive(_user, _orderId) onlyOwner() returns(uint) {
+  function executeBuyOrder(address _user, uint _orderId, uint _tokenId, bytes calldata _fulfullAdvancedOrder) external payable orderIsLive(_user, _orderId) onlyOwner() returns(bytes memory, IMulticall3.Call3Value[] memory) {
     // require(success, 'could not unwrap ETH');
     // require(IERC20(wrappedEtherAddress).balanceOf(address(this)) = ogBalance - _purchasePrice, "Do not have enough ETH");
     // ISeaport(seaportAddress).
 
     IMulticall3.Call3Value[] memory calls = new IMulticall3.Call3Value[](1);
+    bytes memory order = _fulfullAdvancedOrder;
 
     // calls[0] = IMulticall3.Call3Value()
   
@@ -108,7 +109,7 @@ contract UrNFTrader is Ownable, ERC721Holder {
     buyOrderBook[_user][_orderId].orderStatus = OrderStatusMain.Executed;
     emit executedBuyOrder(_user, buyOrderBook[_user][_orderId].collectionAddress, _tokenId);
 
-    return 5;
+    return (order, calls);
   }
 
   modifier orderIsLive(address _user, uint _orderId) {
