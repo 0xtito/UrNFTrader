@@ -11,8 +11,24 @@ import "./index.css"
 // import createOrder from "./testSeaport/createOrder.mjs";
 import executeOrder from "./executeOrder";
 const zeroHash = "0x0000000000000000000000000000000000000000000000000000000000000000"
+const options = {method: 'GET', headers: {accept: 'application/json'}};
 
+let test = BigInt('24840000000000000000')
+// let test = BigInt('12840000000000000000')
+let testPrice = ethers.utils.parseEther('12.232');
+console.log(test)
+console.log(testPrice)
+console.log(24840000057490000000 - 12843230000000000000);
+// let test1 = test.subtract(testPrice)
+// let subTest = BigInt(test) - BigInt(testPrice);
+let subTest = BigInt(24840000057490000000) - BigInt(12843230000000000000);
+console.log(Number(subTest));
 
+console.log(subTest);
+fetch('https://testnets-api.opensea.io/v2/orders/goerli/seaport/listings?asset_contract_address=0xf5de760f2e916647fd766B4AD9E85ff943cE3A2b&limit=1&token_ids=1237375', options)
+  .then(response => response.json())
+  .then(response => console.log(response))
+  .catch(err => console.error(err));
 
 
 const abi = ethers.utils.defaultAbiCoder;
@@ -64,13 +80,7 @@ async function newOrder() {
   const signer = provider.getSigner(0);
   const traderContract = new ethers.Contract(urNFTraderAddress, UrNFTrader.abi, signer);
   const ItraderContract = new ethers.utils.Interface(UrNFTrader.abi);
-  console.log(ItraderContract);
   
-  // console.log(traderContract);
-
-  // const ItraderContract = new ethers.utils.Interface(UrNFTrader.abi);
-  // console.log(ItraderContract.getSighash("setPriceToBuy(address)"));
-
 
   // Only needed with WETH
   if(await checkApproval(signer, traderContract)) {
@@ -78,15 +88,9 @@ async function newOrder() {
     const purchasePrice = ethers.utils.parseEther(document.getElementById('max-buy-price').value, 'wei');
     setBuyOrder(nftCollectionAddress, purchasePrice, {signer, traderContract, provider} );
   } else {
+    // -- later on I can update something to pop up on the front end --
     console.log(`Must approve use of tokens first`);
   }
-
-  // With ETH
-  // console.log(`Submitting Order`);
-  // const nftCollectionAddress = document.getElementById('nft-contract-address').value;
-  // const purchasePrice = ethers.utils.parseEther(document.getElementById('max-buy-price').value, 'wei');
-  // setBuyOrder(nftCollectionAddress, purchasePrice, {signer, traderContract} );
-  
 }
 
 async function _revokeApproval() {
@@ -95,7 +99,7 @@ async function _revokeApproval() {
 
   const signer = provider.getSigner(0);
   const traderContract = new ethers.Contract(urNFTraderAddress, UrNFTrader.abi, signer);
-  console.log(traderContract);
+
   revokeApproval(signer, traderContract);
 }
 
@@ -110,7 +114,6 @@ async function _approveAddress() {
 }
 
 document.getElementById('create-order').addEventListener('click', newOrder);
-// Only needed when using WETH
 document.getElementById('approve-account').addEventListener('click', _approveAddress); 
 document.getElementById('revoke-approval').addEventListener('click', _revokeApproval);
 

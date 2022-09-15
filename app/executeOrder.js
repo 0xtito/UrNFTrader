@@ -5,10 +5,12 @@ import { UniswapRouterArtifact } from '@uniswap/v3-periphery/artifacts/contracts
 import swapETH from './swapETH';
 import { Chain, Common, Hardfork } from '@ethereumjs/common';
 import { FeeMarketEIP1559Transaction } from '@ethereumjs/tx';
+// temp
 import {orders} from '../orderObject.json'
 require('dotenv').config()
 
 const rinkebyAPI = process.env.RINKEBY_API;
+const goerliAPI = process.env.GOERLI_API;
 // Account 2
 const privKey = process.env.PRIVATE_KEY2;
 const common = new Common({ chain: Chain.Rinkeby, hardfork: Hardfork.London });
@@ -28,6 +30,7 @@ const WETHMainnet = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
   */
 
 export default async function executeOrder(orderInfo, contractInfo, orderEvent, tokenId) {
+  // let orders;
 
   const options = {method: 'GET', headers: {Accept: 'application/json'}};
   const { userAddress, collectionAddress, orderId, triggerPrice } = orderInfo;
@@ -38,6 +41,15 @@ export default async function executeOrder(orderInfo, contractInfo, orderEvent, 
   const zeroHash = "0x0000000000000000000000000000000000000000000000000000000000000000"
   const zeroAddress = "0x0000000000000000000000000000000000000000";
   // const zeroHash = '0x0'
+
+  fetch('https://testnets-api.opensea.io/v2/orders/goerli/seaport/listings?asset_contract_address=0xf5de760f2e916647fd766B4AD9E85ff943cE3A2b&limit=1&token_ids=1237375', options)
+  .then(response => response.json())
+  .then(response => {
+    console.log(response);
+    orders = response.orders[0];
+    console.log(orders);
+  })
+  .catch(err => console.error(err));
 
   const ItraderContract = new ethers.utils.Interface(UrNFTrader.abi);
   const abi = ethers.utils.defaultAbiCoder;
@@ -78,26 +90,37 @@ export default async function executeOrder(orderInfo, contractInfo, orderEvent, 
   };
   
   let considerationItemsTuple = [];
+  let purchasePrice = 0;
   let considerationsArr = orders.protocol_data.parameters.consideration;
   for (let i = 0; i < considerationsArr.length; i++) {
     let newConsideration = {
       token: orders.protocol_data.parameters.consideration[i].token,
       itemType: orders.protocol_data.parameters.consideration[i].itemType,
-      identifierOrCriteria: orders.protocol_data.parameters.consideration[i].identifierOrCriteria,
-      startAmount: orders.protocol_data.parameters.consideration[i].startAmount,
-      endAmount: orders.protocol_data.parameters.consideration[i].endAmount,
+      identifierOrCriteria: parseFloat(orders.protocol_data.parameters.consideration[i].identifierOrCriteria),
+      startAmount: parseFloat(orders.protocol_data.parameters.consideration[i].startAmount),
+      endAmount: parseFloat(orders.protocol_data.parameters.consideration[i].endAmount),
       recipient: orders.protocol_data.parameters.consideration[i].recipient
     }
+    // purchasePrice will only apply to not 
+    purchasePrice += newConsideration.startAmount;
     parameters.considerations.push(newConsideration);
-    considerationItemsTuple.push([newConsideration.itemType, parameters.considerations[i].token, parameters.considerations[i].identifierOrCriteria, parameters.considerations[i].startAmount, parameters.considerations[i].endAmount, parameters.considerations[i].recipient])
+    considerationItemsTuple.push([newConsideration.itemType, newConsideration.token, newConsideration.identifierOrCriteria, newConsideration.startAmount, newConsideration.endAmount, newConsideration.recipient])
   }
+
   
   console.log(considerationItemsTuple)
   
   // fulfillAdvanced Order
   const encodedParams = abi.encode(
-    ["tuple( tuple(address offerer, address zone, tuple(uint8 itemType, address token, uint256 identifierOrCriteria, uint256 startAmount, uint256 endAmount)[] offer, tuple(uint8 itemType, address token, uint256 identifierOrCriteria, uint256 startAmount, uint256 endAmount, address recipient)[] consideration, uint8 orderType, uint256 startTime, uint256 endTime, bytes32 zoneHash, uint256 salt, bytes32 conduitKey, uint256 counter) parameters, uint120 numerator, uint120 denominator, bytes signature, bytes extraData) advancedOrder", "tuple(uint 256)"],
-    [ [parameters.offerer, parameters.zone, [[2, parameters.offerToken, parameters.offerIdentifier, parameters.offerStartAmount, parameters.offerEndAmount]], considerationItemsTuple, parameters.basicOrderType, parameters.startTime, parameters.endTime, parameters.zoneHash, parameters.salt, parameters.conduitKey, parameters.counter], 1, 1, parameters.signature, zeroHash] 
+    ["tuple( tuple(address offerer, address zone, tuple(uint8 itemType, address token, uint256 identifierOrCriteria, uint256 startAmount, uint256 endAmount)[] offer, tuple(uint8 itemType, address token, uint256 identifierOrCriteria, uint256 startAmount, uint256 endAmount, address recipient)[] consideration, uint8 orderType, uint256 startTime, uint256 endTime, bytes32 zoneHash, uint256 salt, bytes32 conduitKey, uint256 counter) parameters, uint120 numerator, uint120 denominator, bytes signature, bytes extraData) advancedOrder", "tuple(uint256 orderIndex, uint8 side, uint256 index, uint256 identifier, bytes32[] criteriaProof)[] criteriaResolvers", "bytes32 fulfillerConduitKey", "address recipient"],
+    [ 
+      [
+        [parameters.offerer, parameters.zone, [[2, parameters.offerToken, parameters.offerIdentifier, parameters.offerStartAmount, parameters.offerEndAmount]], considerationItemsTuple, parameters.basicOrderType, parameters.startTime, parameters.endTime, parameters.zoneHash, parameters.salt, parameters.conduitKey, parameters.counter
+        ],
+       1, 1, parameters.signature, zeroHash
+      ],
+    [], zeroHash, userAddress 
+  ] 
   );
 
   const encodedParamsWETH = abi.encode('')
@@ -139,6 +162,11 @@ export default async function executeOrder(orderInfo, contractInfo, orderEvent, 
 
   let events = receipt.logs.map( (log) => ItraderContract.parseLog(log));
   console.log(events);
+
+  traderContract.once('executedBuyOrder', (userAddress, collectionAddress, _tokenIdOfPurchasedNft) => {
+    console.log('WE DID IT!!!!!')
+    console.log({userAddress, collectionAddress, _tokenIdOfPurchasedNft});
+  })
   
 }
 
@@ -156,16 +184,16 @@ async function getResponse(collectionAddress, tokenId) {
 
 }
 
-async function sendOrderToSeaport(_userAddress, _orderId, _triggerPrice, _tokenId, parameters, traderContract) {
-  const tx = await traderContract.executeBuyOrder(_userAddress, _orderId, _triggerPrice, _tokenId, parameters);
-  const receipt = await tx.wait();
-  console.log(`Receipt immediately after tx: ${receipt}`)
+// async function sendOrderToSeaport(_userAddress, _orderId, _triggerPrice, _tokenId, parameters, traderContract) {
+//   const tx = await traderContract.executeBuyOrder(_userAddress, _orderId, _triggerPrice, _tokenId, parameters);
+//   const receipt = await tx.wait();
+//   console.log(`Receipt immediately after tx: ${receipt}`)
 
-  traderContract.once('executedBuyOrder', (_user, _collectionAddress, _orderId) => {
-    console.log('Order fufilled!');
-    console.log(`Receipt after executedBuyOrder emmitted: ${receipt}`);
-  })
-}
+//   traderContract.once('executedBuyOrder', (_user, _collectionAddress, _orderId) => {
+//     console.log('Order fufilled!');
+//     console.log(`Receipt after executedBuyOrder emmitted: ${receipt}`);
+//   })
+// }
 
 
 

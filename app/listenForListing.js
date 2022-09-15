@@ -19,7 +19,7 @@ const client = new OpenSeaStreamClient({
 export default async function listenForListing(orderInfo, contractInfo) {
   let collectionSlug;
 
-  const { userAddress, collectionAddress, orderId, triggerPrice } = orderInfo
+  const { collectionAddress, triggerPrice } = orderInfo
 
   // get collection slug
   fetch(`https://testnets-api.opensea.io/api/v1/asset_contract/${collectionAddress}`, options)
@@ -36,13 +36,17 @@ export default async function listenForListing(orderInfo, contractInfo) {
   
   // I also need to pass the tokenId of the NFT that bases the requirement
   client.onItemListed(collectionSlug, (event) => {
-    let newFloorPrice = event.payload.base_price;
+    let newFloorPrice = BigInt(event.payload.base_price);
+    let paymentToken = event.payload.payment_token.address;
+    let ethAddress = "0x0000000000000000000000000000000000000000";
+   
     console.log(event);
-    if (newFloorPrice <= triggerPrice) {
+    if (newFloorPrice <= BigInt(triggerPrice) && ethAddress == paymentToken) {
       console.log('-- triggered price met --');
       let nftIdParts = event.nft_id.split('/')
       let tokenId = nftIdParts[nftIdParts.length - 1];
-      executeOrder(orderInfo, contractInfo, event, tokenId);
+      let priceToTriggerDifference = BigInt(triggerPrice) - newFloorPrice;
+      executeOrder(orderInfo, contractInfo, event, priceToTriggerDifference, tokenId);
     }
   });
 

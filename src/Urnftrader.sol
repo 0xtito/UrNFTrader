@@ -9,8 +9,9 @@ import "../node_modules/@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.
 // import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../node_modules/@openzeppelin/contracts/access/Ownable.sol";
-import {SeaportInterface} from "../contracts/ISeaport.sol";
-import {IMulticall3} from "./test/mocks/IMulticall3.sol";
+import { SeaportInterface } from "../contracts/ISeaport.sol";
+import { AdvancedOrder, OfferItem, ConsiderationItem, OrderType } from "../contracts/ConsiderationStructs.sol";
+import { IMulticall3 } from "./test/mocks/IMulticall3.sol";
 // import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 // import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 // import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";

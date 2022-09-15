@@ -1,20 +1,23 @@
 import { ethers } from 'ethers';
-import WETH from './artifacts/contracts/WETHToken.sol/WETHToken.json';
+// local WETH version
+import  { abi }  from './artifacts/contracts/WETHToken.sol/WETHToken.json';
 import { WETHTokenAddress } from "./__config.json"
+// real WETH on Goerli
+import WETHabi from "./JSON/WETHabi.json"
 
 export default async function revokeApproval(signer, UrNFTraderContract) {
 
-  // const WETHcontractAdressRinkeby = "0xc778417E063141139Fce010982780140Aa0cD5Ab";
+  const WETHcontractAddressGoerli = "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6";
   const UrNFTraderContractAddress = await UrNFTraderContract.address;
   const signerAddress = await signer.getAddress();
-  const WETHcontract = new ethers.Contract(WETHTokenAddress, WETH.abi, signer);
+  const WETHcontract = new ethers.Contract(WETHTokenAddress, abi, signer);
+  const WETHcontractGoerli = new ethers.Contract(WETHcontractAddressGoerli, WETHabi, signer);
+
 
   if (await WETHcontract.allowance(signerAddress, UrNFTraderContractAddress) < 257) {
-    console.log(`No approval currently set`)
-    return true;
+    console.log(`No approval currently set`);
   } else {
-    console.log(`is approved`)
-
+    console.log(`Start Approval Revocation`);
     const currentAllowance = await WETHcontract.allowance(signerAddress, UrNFTraderContractAddress);
 
     const result = await WETHcontract.decreaseAllowance(UrNFTraderContractAddress, currentAllowance, {
@@ -22,7 +25,6 @@ export default async function revokeApproval(signer, UrNFTraderContract) {
     });
     const receipt = await result.wait();
     console.log('receipt', await receipt);
-    // console.log('New allowance is:', (await WETHcontract.allowance(signerAddress, UrNFTraderContractAddress)).toString());
   }
   
   WETHcontract.once('Approval', async () => {

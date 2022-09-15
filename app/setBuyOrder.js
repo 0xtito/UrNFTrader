@@ -1,4 +1,7 @@
-import WETH from './artifacts/contracts/WETHToken.sol/WETHToken.json';
+// local WETH version
+import {abi} from './artifacts/contracts/WETHToken.sol/WETHToken.json';
+// Goerli WETH abi
+import { WETHabi } from "./JSON/WETHabi.json";
 import { WETHTokenAddress } from "./__config.json"
 import { ethers } from 'ethers';
 import listenForListing from './listenForListing'
