@@ -1,13 +1,15 @@
 import { ethers } from 'ethers';
 import WETH from './JSON/WETHabi.json';
 import { WETHTokenAddress } from "./__config.json"
+import { WETHaddressGoerli } from "./JSON/addresses.json";
+
 
 export default async function checkApproval(signer, UrNFTraderContract) {
 
   // const WETHcontractAdressRinkeby = "0xc778417E063141139Fce010982780140Aa0cD5Ab";
   const UrNFTraderContractAddress = await UrNFTraderContract.address;
   const signerAddress = await signer.getAddress();
-  const WETHcontract = new ethers.Contract(WETHTokenAddress, WETH.abi, signer);
+  const WETHcontract = new ethers.Contract(WETHaddressGoerli, WETH, signer);
 
   // Not the best test, fix later
   if (await WETHcontract.allowance(signerAddress, UrNFTraderContractAddress) > 10000000000000) {

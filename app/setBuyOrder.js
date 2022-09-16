@@ -1,23 +1,20 @@
 // local WETH version
-import {abi} from './artifacts/contracts/WETHToken.sol/WETHToken.json';
+// import {abi} from './artifacts/contracts/WETHToken.sol/WETHToken.json';
 // Goerli WETH abi
-import { WETHabi } from "./JSON/WETHabi.json";
-import { WETHTokenAddress } from "./__config.json"
-import { ethers } from 'ethers';
+// import { WETHabi } from "./JSON/WETHabi.json";
+// import { WETHTokenAddress } from "./__config.json"
+// import { ethers } from 'ethers';
+// import { WETHaddressGoerli } from './JSON/addresses.json';
 import listenForListing from './listenForListing'
 
-// tinyfrens contract address: 0x874b81b49c6C2a2A939ac354D6C1F1DC20f8580D
+// tinyfrens contract address: 0x22dB3E3828042714ed1144bfb7a6075Bbb1ca7f8
 // let signer, contract;
-let num = 0
+
 
 
 
 export default async function setBuyOrder(nftCollectionAddress, purchasePrice, contractInfo ) {
-  const { signer, traderContract, provider } = contractInfo;
-  const signerAddress = await signer.getAddress();
-  const gasLimit = await provider.getFeeData();
-  // const traderContractAddress = await traderContract.address;
-  // const WETHcontract = new ethers.Contract(WETHTokenAddress, WETH.abi, signer);
+  const { traderContract } = contractInfo;
 
   const tx = await traderContract.setPriceToBuy(purchasePrice, nftCollectionAddress);
   const receipt = await tx.wait();

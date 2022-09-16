@@ -31,6 +31,7 @@ contract UrNFTraderTest is DSTest {
     address multicallAddress = 0xcA11bde05977b3631167028862bE2a173976CA11;
     address thisAddress = 0xb4c79daB8f259C7Aee6E5b2Aa729821864227e84;
     address seaportAddress = 0x00000000006c3852cbEf3e08E8dF289169EdE581;
+    address tinyfrensAddress = 0x22dB3E3828042714ed1144bfb7a6075Bbb1ca7f8; 
 
     function setUp() public {
         urnftrader = new UrNFTrader();
@@ -76,6 +77,13 @@ contract UrNFTraderTest is DSTest {
     function testBalanceOf() public {
         assertEq(weth.balanceOf(address(this)), 0);
     }
+
+    function testBuyOrder() public {
+        assertEq(urnftrader.orderIds(msg.sender), 0);
+        urnftrader.setPriceToBuy(tinyfrensAddress);
+        assertEq(urnftrader.orderIds(msg.sender), 1);
+    }
+
     // using the imported interface
     function testIMultiCall() public {
         IMulticall3.Call3Value[] memory Icalls = new IMulticall3.Call3Value[](3);
@@ -98,9 +106,9 @@ contract UrNFTraderTest is DSTest {
         assertEq(endBalanceMulti, startingBalanceMulti + 1 ether);
     }
 
-    function testExecuteBuyOrder() public {
+    // function testExecuteBuyOrder() public {
 
-    }
+    // }
 
     // --- using the imported contract ---
     // function testMultiCall() public {
