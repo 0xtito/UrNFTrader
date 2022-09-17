@@ -5,6 +5,7 @@ import checkApproval from "./checkApproval";
 import revokeApproval from "./revokeApproval";
 import approveAddress from './approveAddress';
 import setBuyOrder from "./setBuyOrder";
+import seaportAbi from "../app/JSON/Seaport.json"
 import {orders} from '../orderObject.json'
 const { OpenSeaSDK, Network: NetworkSDK } = require("opensea-js")
 require("dotenv").config()
@@ -49,6 +50,9 @@ for (let i = 0; i < considerationsArr.length; i++) {
 }
 
 console.log(considerationItemsTuple)
+
+const ISeaportContract = new ethers.utils.Interface(seaportAbi);
+console.log(ISeaportContract)
 
 // fulfillAdvanced Order
 const encodedParams = abi.encode(

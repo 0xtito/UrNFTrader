@@ -22,12 +22,12 @@ interface IWETH {
 
 contract UrNFTraderTest is DSTest {
     UrNFTrader urnftrader;
-    IWETH weth;
+    WETH weth;
     IMulticall3 Imulticall;
     Multicall3 multicall;
     ISeaport seaport;
-    // rinkeby
-    address wethAddress = 0xc778417E063141139Fce010982780140Aa0cD5Ab;
+    // goerli
+    address wethAddress = 0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6;
     address multicallAddress = 0xcA11bde05977b3631167028862bE2a173976CA11;
     address thisAddress = 0xb4c79daB8f259C7Aee6E5b2Aa729821864227e84;
     address seaportAddress = 0x00000000006c3852cbEf3e08E8dF289169EdE581;
@@ -35,10 +35,10 @@ contract UrNFTraderTest is DSTest {
 
     function setUp() public {
         urnftrader = new UrNFTrader();
-        // weth = new WETH();
-        weth = IWETH(wethAddress);
-        Imulticall = IMulticall3(multicallAddress);
-        seaport = ISeaport(seaportAddress);
+        weth = new WETH();
+        // weth = IWETH(wethAddress);
+        // Imulticall = IMulticall3(multicallAddress);
+        // seaport = ISeaport(seaportAddress);
     }
 
     function testDeposit() public {
@@ -78,33 +78,40 @@ contract UrNFTraderTest is DSTest {
         assertEq(weth.balanceOf(address(this)), 0);
     }
 
+    // function testFailBuyOrder() public {
+    //     urnftrader.setPriceToBuy{value: 0.01 ether}(tinyfrensAddress);
+    // }
+
+    function testFailBuyOrder() public {
+        assertEq(urnftrader.orderIds(address(this)), 0);
+        urnftrader.setPriceToBuy{value: 0.02 ether}(tinyfrensAddress);
+        assertEq(urnftrader.orderIds(address(this)), 1);
+    }
+
     function testBuyOrder() public {
-        assertEq(urnftrader.orderIds(msg.sender), 0);
-        urnftrader.setPriceToBuy(tinyfrensAddress);
-        assertEq(urnftrader.orderIds(msg.sender), 1);
+        assertEq(urnftrader.orderIds(address(this)), 0);
+        urnftrader.setPriceToBuy{value: 0.3 ether}(tinyfrensAddress);
+        assertEq(urnftrader.orderIds(address(this)), 1);
     }
 
     // using the imported interface
-    function testIMultiCall() public {
-        IMulticall3.Call3Value[] memory Icalls = new IMulticall3.Call3Value[](3);
-        uint256 num1 = 24840000057490000000;
-        uint256 num2 = 12843230000000000000;
-        assertEq(num1 - num2, 11996770057490001920);
-        uint startingBalanceMulti = weth.balanceOf(address(this));
-        Icalls[0] = IMulticall3.Call3Value(wethAddress, false, 1 ether, abi.encodeWithSignature("deposit()"));
-        Icalls[1] = IMulticall3.Call3Value(wethAddress, false, 0, abi.encodeWithSignature("balanceOf(address)", multicallAddress));
-        Icalls[2] = IMulticall3.Call3Value(wethAddress, false, 0, abi.encodeWithSignature("transfer(address,uint256)", address(this), 1 ether));
+    // function testIMultiCall() public {
+    //     IMulticall3.Call3Value[] memory Icalls = new IMulticall3.Call3Value[](3);
+    //     uint startingBalanceMulti = weth.balanceOf(address(this));
+    //     Icalls[0] = IMulticall3.Call3Value(wethAddress, false, 1 ether, abi.encodeWithSignature("deposit()"));
+    //     Icalls[1] = IMulticall3.Call3Value(wethAddress, false, 0, abi.encodeWithSignature("balanceOf(address)", multicallAddress));
+    //     Icalls[2] = IMulticall3.Call3Value(wethAddress, false, 0, abi.encodeWithSignature("transfer(address,uint256)", address(this), 1 ether));
 
-        (IMulticall3.Result[] memory returnData) = Imulticall.aggregate3Value{ value: 1 ether}(Icalls);
+    //     (IMulticall3.Result[] memory returnData) = Imulticall.aggregate3Value{ value: 1 ether}(Icalls);
 
-        assertTrue(returnData[0].success);
-        assertTrue(returnData[1].success);
-        assertEq(keccak256(returnData[1].returnData), keccak256(abi.encode(startingBalanceMulti + 1 ether)));
-        assertTrue(returnData[2].success);
+    //     assertTrue(returnData[0].success);
+    //     assertTrue(returnData[1].success);
+    //     assertEq(keccak256(returnData[1].returnData), keccak256(abi.encode(startingBalanceMulti + 1 ether)));
+    //     assertTrue(returnData[2].success);
 
-        uint endBalanceMulti = weth.balanceOf(address(this));
-        assertEq(endBalanceMulti, startingBalanceMulti + 1 ether);
-    }
+    //     uint endBalanceMulti = weth.balanceOf(address(this));
+    //     assertEq(endBalanceMulti, startingBalanceMulti + 1 ether);
+    // }
 
     // function testExecuteBuyOrder() public {
 

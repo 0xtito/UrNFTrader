@@ -1,6 +1,7 @@
 import { ethers } from 'ethers';
 import UrNFTrader from './artifacts/contracts/UrNFTrader.sol/UrNFTrader.json';
-import swapETH from './swapETH';
+import seaportAbi from "../app/JSON/Seaport.json";
+// import swapETH from './swapETH';
 import { Seaport } from '@opensea/seaport-js';
 const { OpenSeaSDK, Network } = require("opensea-js")
 // temp
@@ -48,6 +49,7 @@ export default async function executeOrder(orderInfo, contractInfo, orderEvent, 
   console.log(order.protocolData.parameters.orderType);
 
   const ItraderContract = new ethers.utils.Interface(UrNFTrader.abi);
+  const ISeaportContract = new ethers.utils.Interface(seaportAbi);
   const abi = ethers.utils.defaultAbiCoder;
 
   let parameters = {
@@ -104,11 +106,20 @@ export default async function executeOrder(orderInfo, contractInfo, orderEvent, 
   );
   console.log(encodedParams);
 
+  // struct ExtraOrderInfo {
+  //   address user;
+  //   uint orderId;
+  //   uint purchasePrice;
+  // }
+
+  const encodedFulFillAdvancedOrder = ISeaportContract.encodeFunctionData('fulfillAdvancedOrder', [encodedParams]);
+
+  const encodeExtraOrderInfo = abi.encode(["tuple(address uint, uint, uint)"], [
+    [userAddress, orderId, purchasePriceArg, tokenId]
+  ]);
+
   const values = [
-    userAddress,
-    orderId,
-    tokenId,
-    purchasePriceArg,
+    [userAddress, orderId, purchasePriceArg, tokenId],
     encodedParams
   ];
 

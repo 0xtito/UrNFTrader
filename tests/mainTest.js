@@ -2,10 +2,12 @@ const { expect } = require('chai');
 const { ethers, network } = require('hardhat');
 const tinyfrens = require('../NftContract/Tinyfrens.json');
 const { urNFTraderAddress, WETHTokenAddress, multicallAddress } = require('../app/__config.json');
+const { OpenSeaSDK, Network } = require("opensea-js")
+
 const WETHabi = require('../app/JSON/WETHabi.json');
 require('dotenv').config();
 
-const tinyfrensContractAddress = "0x874b81b49c6C2a2A939ac354D6C1F1DC20f8580D";
+const tinyfrensContractAddress = "0x22dB3E3828042714ed1144bfb7a6075Bbb1ca7f8";
 const ownerAddressHard = "0x361Da2Ca3cC6C1f37d2914D5ACF02c4D2cCAC43b";
 const privKeyMain = process.env.PRIVATE_KEY;
 const privKey2 = process.env.PRIVATE_KEY2;
@@ -52,10 +54,10 @@ describe("Testing NftTrader", function() {
       nftContractAddress = nftContract.address;
       await nftContract.mintNft(3)
       // nftContract = await ethers.getContractAt(tinyfrens.abi, tinyfrensContractAddress);
-      let WETHcontract = await ethers.getContractFactory("WETHToken");
-      wETHcontract = await WETHcontract.connect(owner).deploy()
-      await wETHcontract.deployed();
-      wETHcontractAddress = wETHcontract.address;
+      // let WETHcontract = await ethers.getContractFactory("WETHToken");
+      // wETHcontract = await WETHcontract.connect(owner).deploy()
+      // await wETHcontract.deployed();
+      // wETHcontractAddress = wETHcontract.address;
     });
   
     describe('Should set up accounts', function() {
@@ -80,10 +82,10 @@ describe("Testing NftTrader", function() {
         expect(ownedNfts).to.equal(3);
       });
 
-      it('Owner should have access to wETH', async () => {
-        const amount = ethers.utils.formatEther(await wETHcontract.balanceOf(ownersAddress));
-        expect(+amount).to.be.above(9900);
-      })
+      // it('Owner should have access to wETH', async () => {
+      //   const amount = ethers.utils.formatEther(await wETHcontract.balanceOf(ownersAddress));
+      //   expect(+amount).to.be.above(9900);
+      // })
     });
 
     describe(`Should be able to use owner's NFTS`, function() {
@@ -120,11 +122,12 @@ describe("Testing NftTrader", function() {
       let ownersOrders = [];
       let numberOfOrders;
       let hasOrders = false; 
+      let provider = ethers.provider;
       
       before( async () => {
-        // const UrNFTrader = await ethers.getContractFactory("UrNFTrader", owner);
-        // const urNFTrader = await UrNFTrader.deploy();
-        // await urNFTrader.deployed();
+        const UrNFTrader = await ethers.getContractFactory("UrNFTrader", owner);
+        urNFTrader = await UrNFTrader.deploy();
+        await urNFTrader.deployed();
         // Create orders
 
         numberOfOrders = (await urNFTrader.orderIds(ownersAddress)).toNumber();
@@ -153,31 +156,35 @@ describe("Testing NftTrader", function() {
 
         });
 
-        it(`Should approve the contract to use the owner's funds (first time only)`, async () => {
-          if (await wETH.allowance(ownersAddress, urNFTraderAddress) > 1000000000000000) {
-            console.log(`is already approved`);
-          } else {
-            await expect(await wETH.approve(urNFTraderAddress, maxApprovalValue)).to.emit(wETH, 'Approval').withArgs(ownersAddress, urNFTraderAddress, maxApprovalValue);
-            ownerOrderId = 0;
-          }
-        })
+        // it(`Should approve the contract to use the owner's funds (first time only)`, async () => {
+        //   if (await wETH.allowance(ownersAddress, urNFTraderAddress) > 1000000000000000) {
+        //     console.log(`is already approved`);
+        //   } else {
+        //     await expect(await wETH.approve(urNFTraderAddress, maxApprovalValue)).to.emit(wETH, 'Approval').withArgs(ownersAddress, urNFTraderAddress, maxApprovalValue);
+        //     ownerOrderId = 0;
+        //   }
+        // })
   
         it('should add an order to the buy order book and emit', async () => {
-          await expect(urNFTrader.setPriceToBuy(testTriggerPrice, tinyfrensContractAddress)).to.emit(urNFTrader, "submittedNewBuyOrder").withArgs(ownersAddress, tinyfrensContractAddress, numberOfOrders, testTriggerPrice);
+          await expect(await urNFTrader.connect(account2).setPriceToBuy( tinyfrensContractAddress, {value: testTriggerPrice})).to.emit(urNFTrader, "submittedNewBuyOrder").withArgs(account2Address, tinyfrensContractAddress, numberOfOrders, testTriggerPrice);
 
           ownersOrders.push({
-            owner: ownersAddress,
+            owner: account2Address,
             triggerPrice: testTriggerPrice,
             collectionAddress: tinyfrensContractAddress,
-            orderStatus: 0,
+            orderStatus: 1,
             orderId: numberOfOrders
           });
         });
+        numberOfOrders++;
+        // it('urNFTrader should have received the WETH', async () => {
+        //   let contractBalance = await wETH.balanceOf(urNFTraderAddress);
+        //   expect(contractBalance).to.equal(testTriggerPriceAndFee * BigInt(ownersOrders.length))
+        // })
 
-        it('urNFTrader should have received the WETH', async () => {
-          let contractBalance = await wETH.balanceOf(urNFTraderAddress);
-          expect(contractBalance).to.equal(testTriggerPriceAndFee * BigInt(ownersOrders.length))
-
+        it('urNFTrader should have received the ETH', async () => {
+          let contractBalance = await provider.getBalance(urNFTrader.address)
+          expect(contractBalance).to.equal(testTriggerPrice * BigInt(ownersOrders.length))
         })
 
         it('should cancel a buy order (turn on and off)', async () => {

@@ -18,7 +18,11 @@ module.exports = {
       accounts: [process.env.PRIVATE_KEY, process.env.PRIVATE_KEY2, process.env.PRIVATE_KEY3]
     },
     rinkeby: {
-      url: process.env.RINKEBY_API,
+      url: process.env.RINKEBY_API_URL,
+      accounts: [process.env.PRIVATE_KEY, process.env.PRIVATE_KEY2, process.env.PRIVATE_KEY3]
+    },
+    goerli: {
+      url: process.env.GOERLI_API_URL,
       accounts: [process.env.PRIVATE_KEY, process.env.PRIVATE_KEY2, process.env.PRIVATE_KEY3]
     }
   }
