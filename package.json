@@ -9,7 +9,9 @@
     "start": "npm run deploy && npx parcel app/index.html",
     "deployInit": "npx hardhat run scripts/initialDeploy.js --network localhost",
     "deploy": "npx hardhat run scripts/mainDeployment.js --network localhost",
-    "mainTest": "npx hardhat test tests/mainTest.js"
+    "mainTest": "npx hardhat test tests/mainTest.js",
+    "mainTestLocal": "npx hardhat test tests/mainTestLocal.js --network localhost",
+    "buyNFT": "npx hardhat run scripts/buyNFT.js --network goerli"
   },
   "keywords": [],
   "author": "",
@@ -27,6 +29,7 @@
     "@uniswap/v3-periphery": "^1.4.1",
     "api": "^4.5.2",
     "dotenv": "^16.0.1",
+    "eth-rpc-errors": "^4.0.3",
     "hardhat": "^2.10.2",
     "opensea-js": "^4.0.10",
     "ws": "^8.8.1"

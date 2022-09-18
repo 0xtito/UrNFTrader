@@ -20,21 +20,7 @@ import { IMulticall3 } from "./IMulticall3.sol";
 import "hardhat/console.sol";
 
 contract UrNFTrader is Ownable, ERC721Holder {
-  // Interfaces
-  // IMulticall3 multicall;
-  SeaportInterface ISeaport;
-  // IConsiderationStructs SeaportStructs;
-  // IERC20 erc20;
 
-  // Structs and Enums
-  // AdvancedOrder advancedOrder;
-  // OfferItem offerItem;
-  // ConsiderationItem considerationItem;
-  // OrderType orderType;
-  // CriteriaResolver criteriaResolver;
-
-  // address public wrappedEtherAddress;
-  address public multicallAddress;
   address public seaportAddress = 0x00000000006c3852cbEf3e08E8dF289169EdE581;
   // uint public baseFee = 15000000000000000 wei;
   uint public baseFee = 0.015 ether;
@@ -44,7 +30,6 @@ contract UrNFTrader is Ownable, ERC721Holder {
   // user => total Number of Orders (can loop through to find the current contract address)
   mapping(address => uint) public orderIds;
   // mapping(address => bool) public isApprovedERC20;
-  CriteriaResolver[] criteriaResolverArr;
 
   enum OrderStatusMain { Inactive, Pending, Executed, Canceled, Refund, Failed}
 
@@ -66,8 +51,9 @@ contract UrNFTrader is Ownable, ERC721Holder {
   }
   
   
-  constructor() {
+  constructor(address _seaportAddress) {
     // only need to do this for testing purposes
+    seaportAddress = _seaportAddress;
 
   }
 
@@ -90,7 +76,7 @@ contract UrNFTrader is Ownable, ERC721Holder {
       2) Set Order
       3) emit new Order
     */
-    require(msg.value - baseFee < baseFee, 'trigger price too low');
+    require(msg.value - baseFee > baseFee, 'trigger price too low');
     buyOrderBook[msg.sender][orderIds[msg.sender]] = BuyOrder(msg.sender, msg.value - baseFee, _collectionAddress, OrderStatusMain.Pending, orderIds[msg.sender], false, 0);
     emit SubmittedNewBuyOrder(msg.sender, _collectionAddress, orderIds[msg.sender], msg.value - baseFee);
     orderIds[msg.sender]++;
@@ -98,25 +84,59 @@ contract UrNFTrader is Ownable, ERC721Holder {
 
   // TODO
   // GET THE ORDER ORDER PARAMETERS FROM THE FRONT END
+  event TestOrderInfo(address indexed user, uint indexed orderId, uint indexed purchasePrice);
+  // , bytes indexed orderParams, address indexed addr
+  // -- TESING INPUT STRUCTS AND EMITTING IT
+  function testOrderInfo(ExtraOrderInfo calldata _orderInfo) external payable onlyOwner returns(ExtraOrderInfo memory) {
 
-  function executeBuyOrder(ExtraOrderInfo calldata _orderInfo,  bytes calldata orderParams) external payable orderIsLiveOrFailed(_orderInfo.user, _orderInfo.orderId) onlyOwner returns(bool completedPurchase) {
+    // ,  bytes calldata orderParams
 
-    // address user, uint orderId, uint256 purchasePrice,
+    emit TestOrderInfo(_orderInfo.user, _orderInfo.orderId, _orderInfo.purchasePrice );
+    return _orderInfo;
+
+    // return (_advancedOrder, CriteriaResolver,_fulfillerConduitKey, 
+
+    // return (_orderInfo, orderParams);
+  }
+
+  event TestOrderParams(address indexed user, uint indexed orderId, bytes32 indexed conduitKey, uint totalConsiderationItems);
+  function testOrderParams(bytes calldata orderParams) external payable onlyOwner  {
+    // THIS WORKS, SO THAT MEANS I AM ENCODING SOMETHING INCORRECTLY
+    ExtraOrderInfo memory test = abi.decode(orderParams, (ExtraOrderInfo) );
+
+    // test struct array
+    // ExtraOrderInfo[] memory testArr = abi.decode(orderParams,)
+
+    // ,  bytes calldata orderParams
+    (AdvancedOrder memory _advancedOrder, CriteriaResolver[] memory _criteriaResolver, bytes32 _fulfillerConduitKey, address _recipient) = abi.decode(orderParams, (AdvancedOrder, CriteriaResolver[], bytes32, address));
+
+    emit TestOrderParams(test.user, test.orderId, _advancedOrder.parameters.conduitKey, _advancedOrder.parameters.totalOriginalConsiderationItems);
+    // return _orderInfo;
+
+    // return (_advancedOrder, CriteriaResolver,_fulfillerConduitKey, 
+
+    // return (_orderInfo, orderParams);
+  }
+  event TestSeaport(bool indexed fulfilled, string indexed msg);
+  function executeBuyOrder(ExtraOrderInfo calldata _orderInfo,  bytes calldata orderParams) external payable  onlyOwner orderIsLiveOrFailed(_orderInfo.user, _orderInfo.orderId) {
+
 
     BuyOrder memory currentOrder = buyOrderBook[_orderInfo.user][_orderInfo.orderId];
 
-    // console.log(purchasePrice);
-
-    (AdvancedOrder memory _advancedOrder, CriteriaResolver memory _criteriaResolver, bytes32 _fulfillerConduitKey, address _recipient) = abi.decode(orderParams, (AdvancedOrder, CriteriaResolver, bytes32, address));
-    // CriteriaResolver[] memory criteriaResolverArrTest = _criteriaResolver;
-    if (criteriaResolverArr.length == 1) {
-      criteriaResolverArr.pop();
-    }
-    criteriaResolverArr.push(_criteriaResolver);
-    // criteriaResolverArrTest.push(_criteriaResolver);
 
 
-    bool fulfilled = SeaportInterface(seaportAddress).fulfillAdvancedOrder{value: _orderInfo.purchasePrice}(_advancedOrder, criteriaResolverArr, _fulfillerConduitKey, _recipient);
+    (AdvancedOrder memory _advancedOrder, CriteriaResolver[] memory _criteriaResolver, bytes32 _fulfillerConduitKey, address _recipient) = abi.decode(orderParams, (AdvancedOrder, CriteriaResolver[], bytes32, address));
+    // emit testAddress(_recipient);
+
+  //  try SeaportInterface(seaportAddress).fulfillAdvancedOrder{value: _orderInfo.purchasePrice}(_advancedOrder, _criteriaResolver, _fulfillerConduitKey, _recipient) returns (bool fulfilled) {
+  //     emit TestSeaport(true, "no error in fulfilled");
+  //     return (fulfilled);
+  //  } catch Error(string memory reason) {
+  //     emit TestSeaport(false, reason);
+  //     return (false);
+  //  }
+
+    bool fulfilled = SeaportInterface(seaportAddress).fulfillAdvancedOrder{value: _orderInfo.purchasePrice}(_advancedOrder, _criteriaResolver, _fulfillerConduitKey, _recipient);
 
     if (fulfilled) {
       if (currentOrder.triggerPrice - _orderInfo.purchasePrice > 0.005 ether) {
@@ -137,8 +157,6 @@ contract UrNFTrader is Ownable, ERC721Holder {
       currentOrder.orderStatus = OrderStatusMain.Failed;
       emit OrderFailed(_orderInfo.user, currentOrder.collectionAddress, _orderInfo.orderId);
     }
-    return fulfilled;
-
 
   }
 
@@ -157,14 +175,9 @@ contract UrNFTrader is Ownable, ERC721Holder {
     emit CanceledBuyOrder(msg.sender, buyOrderBook[msg.sender][orderId].collectionAddress);
   }
 
-  // function setWrappedEtherAddress(address _wrappedEtherAddress) public onlyOwner returns(address) {
-  //   wrappedEtherAddress = _wrappedEtherAddress;
-  //   return wrappedEtherAddress;
-  // }
-
-  function setMulticallAddress(address _multicallAddress) public onlyOwner returns(address) {
-    multicallAddress = _multicallAddress;
-    return multicallAddress;
+  function setSeaportAddress(address _seaportAddress) public onlyOwner returns(address) {
+    seaportAddress = _seaportAddress;
+    return _seaportAddress;
   }
 
   function setBaseFee(uint _fee) external onlyOwner returns(uint) {
