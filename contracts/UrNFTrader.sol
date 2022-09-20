@@ -11,25 +11,24 @@ import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import { SeaportInterface } from "../contracts/ISeaport.sol";
 import { AdvancedOrder, OfferItem, ConsiderationItem, OrderType, CriteriaResolver} from "./ConsiderationStructs.sol";
-import { IMulticall3 } from "./IMulticall3.sol";
+// import { IMulticall3 } from "./IMulticall3.sol";
 // import { IConsiderationStructs } from "../contracts/IConsiderationStructs.sol";
 // import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 // import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 // import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 
-import "hardhat/console.sol";
 
 contract UrNFTrader is Ownable, ERC721Holder {
 
+  SeaportInterface public ISeaport;
+
   address public seaportAddress = 0x00000000006c3852cbEf3e08E8dF289169EdE581;
-  // uint public baseFee = 15000000000000000 wei;
   uint public baseFee = 0.015 ether;
 
 
   mapping(address => mapping(uint => BuyOrder)) public buyOrderBook;
   // user => total Number of Orders (can loop through to find the current contract address)
-  mapping(address => uint) public orderIds;
-  // mapping(address => bool) public isApprovedERC20;
+  mapping(address => uint) public totalOrders;
 
   enum OrderStatusMain { Inactive, Pending, Executed, Canceled, Refund, Failed}
 
@@ -49,92 +48,28 @@ contract UrNFTrader is Ownable, ERC721Holder {
     uint purchasePrice;
     uint tokenId;
   }
-  
-  
-  constructor(address _seaportAddress) {
-    // only need to do this for testing purposes
-    seaportAddress = _seaportAddress;
 
-  }
-
-  event SubmittedNewBuyOrder(address indexed addr, address indexed collectionAddress, uint indexed orderId, uint triggerPrice);
+  event SubmittedNewBuyOrder(address indexed addr, address indexed collectionAddress, uint indexed orderId);
   event ExecutedBuyOrder(address indexed addr, address indexed collectionAddress, uint indexed tokenId);
-  // event submittedNewBuyOrder( BuyOrder currentBuyOrder, uint indexed orderId);
-  event SubmitPriceToSell(address indexed addr, address indexed collectionAddress, uint indexed triggerPrice);
-  event CanceledBuyOrder(address indexed addr, address indexed collectionAddress);
+  event CanceledBuyOrder(address indexed addr, address indexed collectionAddress, uint indexed orderId);
   event CanceledSellOrder(address indexed addr, address indexed collectionAddress);
   event EligibleForRefund(address indexed addr, uint orderId, uint indexed refundAmount);
   event GivenRefund(address indexed addr, uint orderId, uint indexed refundAmount);
   event OrderFailed(address indexed addr, address indexed collectionAddress, uint orderId);
 
-
-  // using ETH
   function setPriceToBuy(address _collectionAddress) payable external {
-    /*
-      Steps:
-      1) Check for approval
-      2) Set Order
-      3) emit new Order
-    */
     require(msg.value - baseFee > baseFee, 'trigger price too low');
-    buyOrderBook[msg.sender][orderIds[msg.sender]] = BuyOrder(msg.sender, msg.value - baseFee, _collectionAddress, OrderStatusMain.Pending, orderIds[msg.sender], false, 0);
-    emit SubmittedNewBuyOrder(msg.sender, _collectionAddress, orderIds[msg.sender], msg.value - baseFee);
-    orderIds[msg.sender]++;
+    buyOrderBook[msg.sender][totalOrders[msg.sender]] = BuyOrder(msg.sender, msg.value - baseFee, _collectionAddress, OrderStatusMain.Pending, totalOrders[msg.sender], false, 0);
+    emit SubmittedNewBuyOrder(msg.sender, _collectionAddress, totalOrders[msg.sender]);
+    totalOrders[msg.sender]++;
   }
 
-  // TODO
-  // GET THE ORDER ORDER PARAMETERS FROM THE FRONT END
-  event TestOrderInfo(address indexed user, uint indexed orderId, uint indexed purchasePrice);
-  // , bytes indexed orderParams, address indexed addr
-  // -- TESING INPUT STRUCTS AND EMITTING IT
-  function testOrderInfo(ExtraOrderInfo calldata _orderInfo) external payable onlyOwner returns(ExtraOrderInfo memory) {
-
-    // ,  bytes calldata orderParams
-
-    emit TestOrderInfo(_orderInfo.user, _orderInfo.orderId, _orderInfo.purchasePrice );
-    return _orderInfo;
-
-    // return (_advancedOrder, CriteriaResolver,_fulfillerConduitKey, 
-
-    // return (_orderInfo, orderParams);
-  }
-
-  event TestOrderParams(address indexed user, uint indexed orderId, bytes32 indexed conduitKey, uint totalConsiderationItems);
-  function testOrderParams(bytes calldata orderParams) external payable onlyOwner  {
-    // THIS WORKS, SO THAT MEANS I AM ENCODING SOMETHING INCORRECTLY
-    ExtraOrderInfo memory test = abi.decode(orderParams, (ExtraOrderInfo) );
-
-    // test struct array
-    // ExtraOrderInfo[] memory testArr = abi.decode(orderParams,)
-
-    // ,  bytes calldata orderParams
-    (AdvancedOrder memory _advancedOrder, CriteriaResolver[] memory _criteriaResolver, bytes32 _fulfillerConduitKey, address _recipient) = abi.decode(orderParams, (AdvancedOrder, CriteriaResolver[], bytes32, address));
-
-    emit TestOrderParams(test.user, test.orderId, _advancedOrder.parameters.conduitKey, _advancedOrder.parameters.totalOriginalConsiderationItems);
-    // return _orderInfo;
-
-    // return (_advancedOrder, CriteriaResolver,_fulfillerConduitKey, 
-
-    // return (_orderInfo, orderParams);
-  }
-  event TestSeaport(bool indexed fulfilled, string indexed msg);
+  // THIS FUNCTION WORKS PERFECTLY  
   function executeBuyOrder(ExtraOrderInfo calldata _orderInfo,  bytes calldata orderParams) external payable  onlyOwner orderIsLiveOrFailed(_orderInfo.user, _orderInfo.orderId) {
-
 
     BuyOrder memory currentOrder = buyOrderBook[_orderInfo.user][_orderInfo.orderId];
 
-
-
     (AdvancedOrder memory _advancedOrder, CriteriaResolver[] memory _criteriaResolver, bytes32 _fulfillerConduitKey, address _recipient) = abi.decode(orderParams, (AdvancedOrder, CriteriaResolver[], bytes32, address));
-    // emit testAddress(_recipient);
-
-  //  try SeaportInterface(seaportAddress).fulfillAdvancedOrder{value: _orderInfo.purchasePrice}(_advancedOrder, _criteriaResolver, _fulfillerConduitKey, _recipient) returns (bool fulfilled) {
-  //     emit TestSeaport(true, "no error in fulfilled");
-  //     return (fulfilled);
-  //  } catch Error(string memory reason) {
-  //     emit TestSeaport(false, reason);
-  //     return (false);
-  //  }
 
     bool fulfilled = SeaportInterface(seaportAddress).fulfillAdvancedOrder{value: _orderInfo.purchasePrice}(_advancedOrder, _criteriaResolver, _fulfillerConduitKey, _recipient);
 
@@ -165,35 +100,14 @@ contract UrNFTrader is Ownable, ERC721Holder {
     _;
   }
 
-  // with WETH
+  // with ETH
   function cancelOrderToBuy(uint orderId) external orderIsLiveOrFailed(msg.sender, orderId) {
     uint refund = buyOrderBook[msg.sender][orderId].triggerPrice;
     buyOrderBook[msg.sender][orderId].triggerPrice = 0;
     (bool success, ) = msg.sender.call{value: refund}("");
     require(success, "failed to return ETH");
     buyOrderBook[msg.sender][orderId].orderStatus = OrderStatusMain.Canceled;
-    emit CanceledBuyOrder(msg.sender, buyOrderBook[msg.sender][orderId].collectionAddress);
-  }
-
-  function setSeaportAddress(address _seaportAddress) public onlyOwner returns(address) {
-    seaportAddress = _seaportAddress;
-    return _seaportAddress;
-  }
-
-  function setBaseFee(uint _fee) external onlyOwner returns(uint) {
-    baseFee = _fee;
-    return baseFee;
-  }
-
-  function retrieveBuyOrderHistory() external view returns(BuyOrder[] memory) {
-    require(orderIds[msg.sender] != 0, 'Have never placed a buy order');
-
-    BuyOrder[] memory buyOrders = new BuyOrder[](orderIds[msg.sender]);
-    
-    for (uint i = 0; i < orderIds[msg.sender]; i++) {
-        buyOrders[i] = buyOrderBook[msg.sender][i];
-    }
-    return buyOrders;
+    emit CanceledBuyOrder(msg.sender, buyOrderBook[msg.sender][orderId].collectionAddress, orderId);
   }
 
   function retrieveRefund(uint orderId) external onlyRefund(orderId) {
@@ -201,6 +115,11 @@ contract UrNFTrader is Ownable, ERC721Holder {
     require(success, "tx failed");
     buyOrderBook[msg.sender][orderId].orderStatus = OrderStatusMain.Executed;
     emit GivenRefund(msg.sender, orderId, buyOrderBook[msg.sender][orderId].refundAmount);
+  }
+
+  function setBaseFee(uint _fee) external onlyOwner returns(uint) {
+    baseFee = _fee;
+    return baseFee;
   }
 
   function withdraw() external onlyOwner {
@@ -223,8 +142,7 @@ contract UrNFTrader is Ownable, ERC721Holder {
 }
 
 
-/*
-under the executeBuyOrder function
+/* under the executeBuyOrder function
     // IMulticall3.Call3Value[] memory calls = new IMulticall3.Call3Value[](2);
     // bool fulfilled = ISeaport(seaportAddress).fulfillAdvancedOrder{value: purchasePrice}(_advancedOrder,_criteriaResolver, _fulfillerConduitKey,_recipient);
     // require(fulfilled, "FulfillAdvancedOrder failed");

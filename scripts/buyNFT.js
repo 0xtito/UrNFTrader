@@ -12,9 +12,10 @@ const tinyfrensContractAddress = "0x22dB3E3828042714ed1144bfb7a6075Bbb1ca7f8";
 const ownerAddressHard = "0x361Da2Ca3cC6C1f37d2914D5ACF02c4D2cCAC43b";
 const privKeyMain = process.env.PRIVATE_KEY;
 const privKey2 = process.env.PRIVATE_KEY2;
-const privKey3 = process.env.PRIVATE_KEY3
+const privKey3 = process.env.PRIVATE_KEY3;
 const apiUrl = process.env.GOERLI_API_URL;
 const apiKey = process.env.GOERLI_API_KEY;
+// const infuraAPI = process.env.INFURA_GOERLI_APIURL;
 const testAccount2Hard = "0xc53bf942c381A14036675502Ae69A54595f9c2A8";
 const testAccount3Hard = "0x446D078afc01D63D4BB41Da179072954EC3F5719";
 const testTriggerPrice = ethers.utils.parseEther("0.4")
@@ -22,11 +23,14 @@ const maxApprovalValue = BigInt(((2**256) - 1) /(10**18));
 const testTriggerPriceAndFee = BigInt(110000000000000000);
 const baseFee = ethers.utils.parseEther('0.015');
 // const provider = ethers.provider;
-const provider = new ethers.providers.AlchemyProvider('goerli',apiKey);
-// const provider1 = new ethers.providers.JsonRpcProvider(apiUrl);
-// console.log(provider);
+// const provider = new ethers.providers.AlchemyProvider('goerli',apiKey);
+const provider = new ethers.providers.JsonRpcBatchProvider(apiUrl)
+console.log(provider);
 const owner = new ethers.Wallet(privKeyMain, provider);
 
+// const openseaSDK = new OpenSeaSDK(provider, {
+//   networkName: Network.Goerli,
+// });
 
 // console.log(openseaSDK);
 
@@ -38,17 +42,17 @@ async function main() {
   //   code: -32603
   // })
 
-  const openseaSDK = new OpenSeaSDK(provider, {
-    networkName: Network.Goerli,
-  });
-  console.log(openseaSDK);
-  const urNFTrader = new ethers.ContractFactory(urNFTraderJSON.abi,urNFTraderJSON.bytecode,owner);
+  // const openseaSDK = new OpenSeaSDK(provider, {
+  //   networkName: Network.Goerli,
+  // });
+  // console.log(openseaSDK);
+  const urNFTrader = new ethers.ContractFactory(urNFTraderJSON.abi,urNFTraderJSON.bytecode);
   console.log(urNFTrader);
 
   const order = await openseaSDK.api.getOrder({
     side: 'ask',
     assetContractAddress: tinyfrensContractAddress,
-    tokenId: '5'
+    tokenId: '1'
   });
   // console.log(order)
   // const purchasePrice = order.currentPrice;

@@ -1,0 +1,17 @@
+.contract-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.contract-info label {
+  margin: 0;
+}
+
+.contract-info .field {
+  margin: 2px 20px;
+}
+
+.contract-info .field > div {
+  background-color: #eee;
+  padding: 10px 10px;
+}

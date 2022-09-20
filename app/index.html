@@ -5,7 +5,7 @@
     <title> MyNFTrader </title>
   </head>
   <body>
-    <h1> Send NFT Price </h1>
+    <h1> Set NFT Order </h1>
     <div class="contract-interface">
       <label>
         NFT Collection (contract address)
@@ -20,14 +20,44 @@
       <div class="button" id="create-order">
         Create Order
       </div>
+    </div>
 
-      <div class="button" id="approve-account">
-        Approve
-      </div> 
+    <div class="contract-info">
+      <h1> Contract Information </h1>
 
-      <div class="button" id="revoke-approval">
-        Revoke Approval
-      </div> 
+      <div class="field">
+        <label> Current User </label>
+        <div id="current-user"> <!-- address gets populated here here --> </div>
+      </div>
+
+      <div class="field">
+        <label> ETH Balance </label>
+        <div id="balance"> <!-- contract balance gets populated here here --> </div>
+      </div>
+
+      <div class="field">
+        <label> Pending Orders </label>
+        <div id="pending-orders"> <!-- required confirmations go here --> </div>
+      </div>
+
+      <div class="field">
+        <label> Executed Orders </label>
+        <div id="executed-orders"> <!-- owner addresses get populated here here --> </div>
+      </div>
+
+      <div class="field">
+        <label> Canceled Orders </label>
+        <div id="canceled-orders"> <!-- required confirmations go here --> </div>
+      </div>
+    </div>
+  </div>
+
+    <div class="existing-orders">
+      <h1> Existing Orders </h1>
+      
+      <div id="container">
+        <!-- existing orders will go here -->
+      </div>
     </div>
 
     <script type="module" src="index.js"></script>

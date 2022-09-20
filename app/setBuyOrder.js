@@ -3,7 +3,7 @@
 // Goerli WETH abi
 // import { WETHabi } from "./JSON/WETHabi.json";
 // import { WETHTokenAddress } from "./__config.json"
-// import { ethers } from 'ethers';
+import { ethers } from 'ethers';
 // import { WETHaddressGoerli } from './JSON/addresses.json';
 import listenForListing from './listenForListing'
 
@@ -14,13 +14,10 @@ import listenForListing from './listenForListing'
 
 
 export default async function setBuyOrder(nftCollectionAddress, purchasePrice, contractInfo ) {
-  const { traderContract } = contractInfo;
+  const {  urNFTrader } = contractInfo;
 
-  const tx = await traderContract.setPriceToBuy(purchasePrice, nftCollectionAddress);
-  const receipt = await tx.wait();
-  console.log(receipt)
   
-  traderContract.once('submittedNewBuyOrder', (userAddress, collectionAddress, orderId, triggerPrice) => {
+  urNFTrader.once('submittedNewBuyOrder', (userAddress, collectionAddress, orderId, triggerPrice) => {
     console.log('new buy order added');
     console.log({ userAddress, collectionAddress, orderId, triggerPrice });
     listenForListing( { userAddress, collectionAddress, orderId, triggerPrice }, contractInfo);

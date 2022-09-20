@@ -3,9 +3,12 @@ const { OpenSeaSDK, Network: NetworkSDK } = require("opensea-js")
 import { WebSocket } from 'ws';
 import { Seaport } from '@opensea/seaport-js';
 import { ethers } from 'ethers';
+import UrNFTraderJSON from "./artifacts/contracts/UrNFTrader.sol/UrNFTrader.json";
+import {urNFTraderAddress} from "./__config.json";
 import executeOrder from "./executeOrder.js";
 const options = {method: 'GET'};
 require('dotenv').config();
+const apiUrl = process.env.GOERLI_API_URL;
 
 
 const client = new OpenSeaStreamClient({
@@ -17,10 +20,17 @@ const client = new OpenSeaStreamClient({
 
 
 
-export default async function listenForListing(orderInfo, contractInfo) {
+export default async function listenForListing(orderInfo) {
   let collectionSlug;
-  const { collectionAddress, triggerPrice } = orderInfo
-  const { provider } = contractInfo;
+  const {userAddress, collectionAddress, orderId} = orderInfo
+  const provider = new ethers.providers.Web3Provider(ethereum);
+
+  const urNFTrader = new ethers.Contract(urNFTraderAddress, UrNFTraderJSON.abi, provider);
+
+  const orderStruct = await urNFTrader.buyOrderBook(userAddress, orderId.toString());
+  console.log(orderStruct);
+  const triggerPrice = orderStruct.triggerPrice.toString();
+
 
   // const tinyfrensContract = "0x22dB3E3828042714ed1144bfb7a6075Bbb1ca7f8"
 
@@ -32,8 +42,9 @@ export default async function listenForListing(orderInfo, contractInfo) {
     asset_contract_address: collectionAddress,
     limit: 1
   })
+
   collectionSlug = assets[0].collection.slug;
-  console.log(collectionSlug)
+  console.log(collectionSlug);
   
   // I also need to pass the tokenId of the NFT that bases the requirement
   // -- OPENSEA NEEDS TO UPDATE THE STREAM CLIENT TO USE GOERLI FOR THIS TO WORK -- 
@@ -46,11 +57,13 @@ export default async function listenForListing(orderInfo, contractInfo) {
     console.log(event);
     if (newFloorPrice <= BigInt(triggerPrice) && ethAddress == paymentToken) {
       console.log('-- trigger price met --');
-      let nftIdParts = event.nft_id.split('/')
+      let nftIdParts = event.payload.item.nft_id.split('/');
       let tokenId = nftIdParts[nftIdParts.length - 1];
       let priceToTriggerDifference = BigInt(triggerPrice) - newFloorPrice;
       let priceToTriggerDifferenceStr = priceToTriggerDifference.toString();
-      executeOrder(orderInfo, contractInfo, event, newFloorPrice, tokenId, client);
+      executeOrder(orderInfo, event, tokenId, client);
+    } else {
+      console.log('floor price does not meet threshold or payment token is not in ETH');
     }
   });
 

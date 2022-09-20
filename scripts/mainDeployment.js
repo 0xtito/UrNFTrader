@@ -9,7 +9,7 @@ async function main() {
   console.log(`start`)
   const UrNFTrader = await ethers.getContractFactory("UrNFTrader");
   console.log(`retrieved contract`)
-  const urNFTrader = await UrNFTrader.deploy(seaportAddress);
+  const urNFTrader = await UrNFTrader.deploy();
   console.log(`deploying...`)
 
   await urNFTrader.deployed();
@@ -18,7 +18,7 @@ async function main() {
 
   console.log("urNFTrader deployed to:", urNFTrader.address);
 
-  const config = { urNFTraderAddress: urNFTrader.address , seaportAddress: seaportAddress };
+  const config = { urNFTraderAddress: urNFTrader.address };
   fs.writeFileSync("./app/__config.json", JSON.stringify(config, null, 2));
 }
 
