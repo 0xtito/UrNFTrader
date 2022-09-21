@@ -21,15 +21,9 @@ export default async function manageListeners(userAddress) {
     networkName: NetworkSDK.Goerli,
   });
 
-  // let { asset } = await openseaSDK.api.getAssets({
-  //   asset_contract_address: collectionAddress,
-  //   limit: 1
-  // })
-
   let GETcount = 0;
   for (let i = 0; i < totalOrders; i++) {
     let asset;
-    // const order = await urNFTrader.getBuyOrder(userAddress, i);
     const order = await urNFTrader.getBuyOrder(userAddress, i);
     if (GETcount < 4 && order.orderStatus == 1) {
       asset = await openseaSDK.api.getAssets({
