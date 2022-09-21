@@ -135,7 +135,7 @@ describe("Testing NftTrader", function() {
         if ( numberOfOrders != 0) {
           hasOrders = true;
           for (let i = 0; i < numberOfOrders; i++ ) {
-            let order = await urNFTrader.buyOrderBook(ownersAddress, i);
+            let order = await urNFTrader.getBuyOrder(ownersAddress, i);
             ownersOrders.push({
               owner: order.owner,
               triggerPrice: BigInt(order.triggerPrice),

@@ -26,5 +26,8 @@ module.exports = {
       url: process.env.GOERLI_API_URL,
       accounts: [process.env.PRIVATE_KEY, process.env.PRIVATE_KEY2, process.env.PRIVATE_KEY3]
     }
+  },
+  etherscan: {
+    apiKey: process.env.ETHERSCAN_API
   }
 };
