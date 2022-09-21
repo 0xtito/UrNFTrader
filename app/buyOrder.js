@@ -1,6 +1,5 @@
 import { ethers } from "ethers";
 
-
 export default function build({orderId, attributes}) {
  let {orderStatus, collectionAddress, triggerPrice } = attributes;
  if (orderStatus == 1 ) {
@@ -39,7 +38,6 @@ export default function build({orderId, attributes}) {
         <div class="order-status">
           <strong>Order Status</strong>: ${orderStatus}
         </div>
-      </div>
     </div>
   `;
  } else if (orderStatus == 3 ) {

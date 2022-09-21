@@ -1,8 +1,8 @@
 import populateOrders from "./populateOrders";
 import populateInfo from "./populateInfo";
-import listenForListing from './listenForListing'
-import UrNFTraderJSON from "./artifacts/contracts/UrNFTrader.sol/UrNFTrader.json";
+import UrNFTraderJSON from "./artifacts/contracts/UrNFTraderV1.sol/UrNFTraderV1.json";
 import {urNFTraderAddress} from "./__config.json";
+import manageListeners from "./manageListeners";
 import { ethers } from "ethers";
 
 export default async function setupEvents() {
@@ -14,30 +14,32 @@ export default async function setupEvents() {
 
   populateOrders();
   populateInfo();
+  manageListeners(ethereum.selectedAddress);
 
 
   const code = await provider.getCode(urNFTraderAddress);
   if (code != '0x') {
     urNFTrader.on("SubmittedNewBuyOrder", (userAddress, collectionAddress, orderId) => {
       console.log('inside event handler SubmittedNewBuyOrder')
-      // console.log(userAddress, collectionAddress, orderId);
-      // populateOrders(userAddress, collectionAddress, orderId);
-      listenForListing({userAddress, collectionAddress, orderId});
       populateOrders();
       populateInfo();
+      manageListeners(userAddress)
     });
-    urNFTrader.on("CanceledBuyOrder", () => {
+    urNFTrader.on("CanceledBuyOrder", (userAddress) => {
       console.log('order was canceled');
       populateOrders();
       populateInfo();
+      manageListeners(userAddress);
     });
-    urNFTrader.on("EligibleForRefund", () => {
+    urNFTrader.on("OwedLeftoverFunds", () => {
       populateInfo();
     });
-    urNFTrader.on("ExecutedBuyOrder", () => {
+    urNFTrader.on("ExecutedBuyOrder", (userAddress) => {
       console.log('VICTORY!!!');
+      console.log(userAddress);
       populateOrders();
       populateInfo();
+      manageListeners(userAddress);
     })
   }
 }
