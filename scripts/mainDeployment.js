@@ -1,13 +1,11 @@
 const { ethers } = require("hardhat");
 const fs = require('fs');
-const { WETHTokenAddress } = require("../app/__config.json");
-const multicallAddress = "0xcA11bde05977b3631167028862bE2a173976CA11";
-const seaportAddress = "0x00000000006c3852cbEf3e08E8dF289169EdE581";
+
 
 async function main() {
 
   console.log(`start`)
-  const UrNFTrader = await ethers.getContractFactory("UrNFTrader");
+  const UrNFTrader = await ethers.getContractFactory("UrNFTraderV1");
   console.log(`retrieved contract`)
   const urNFTrader = await UrNFTrader.deploy();
   console.log(`deploying...`)
