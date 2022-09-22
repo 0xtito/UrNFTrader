@@ -20,11 +20,9 @@ const testTriggerPriceAndFee = BigInt(110000000000000000);
 const testProvider = ethers.provider;
 
 
-/* Test breakdown
-** import trader, multicall, and tinyfrens contract address
-** test I have control of nft contract and owner 9 of the tinyfrens
-** test i have WETH
-*/
+/**
+ * NEEDS TO BE CLEANED UP
+ */
 
 describe("Testing NftTrader", function() {
   let nftContract, nftContractAddress, wETHcontract, wETHcontractAddress, ownersAddress, account2Address, account3Address;

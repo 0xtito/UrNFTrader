@@ -8,6 +8,10 @@ const { OpenSeaSDK, Network } = require("opensea-js")
 const WETHabi = require('../app/JSON/WETHabi.json');
 require('dotenv').config();
 
+/**
+ * NEEDS TO BE CLEANED UP
+ */
+
 const tinyfrensContractAddress = "0x22dB3E3828042714ed1144bfb7a6075Bbb1ca7f8";
 const ownerAddressHard = "0x361Da2Ca3cC6C1f37d2914D5ACF02c4D2cCAC43b";
 const privKeyMain = process.env.PRIVATE_KEY;

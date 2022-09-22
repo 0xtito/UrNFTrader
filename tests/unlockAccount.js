@@ -11,6 +11,10 @@ const testTriggerPrice = BigInt(100000000000000000);
 const maxApprovalValue = BigInt(((2**256) - 1) /(10**18));
 const testTriggerPriceAndFee = BigInt(110000000000000000);
 
+/**
+ * NEEDS TO BE CLEANED UP
+ */
+
 describe("Testing NftTrader", function() {
   let owner, ownersAddress, account2, account3, nftContract, wETH;
   
