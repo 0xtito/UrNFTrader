@@ -13,3 +13,7 @@ cache
 out
 .vscode
 app/JSON
+.vercel
+contracts/IMultiCall3.sol
+app/JSON
+Makefile
