@@ -120,11 +120,11 @@ contract UrNFTraderV1 is Ownable {
    * @param orderId             The order identifier.
    */
   function cancelOrderToBuy(uint orderId) external orderIsPendingOrFailed(msg.sender, orderId) onlyUserOrOwner(msg.sender, orderId) {
-    uint owed = buyOrderBook[msg.sender][orderId].triggerPrice + baseFee;
+    uint owed = buyOrderBook[msg.sender][orderId].triggerPrice;
     buyOrderBook[msg.sender][orderId].triggerPrice = 0;
-    (bool success, ) = msg.sender.call{value: owed}("");
+    (bool success, ) = msg.sender.call{value: owed + baseFee}("");
     require(success, "failed to return ETH");
-    pendingOrdersETHAmount -= buyOrderBook[msg.sender][orderId].triggerPrice;
+    pendingOrdersETHAmount -= owed;
     buyOrderBook[msg.sender][orderId].orderStatus = OrderStatusMain.Canceled;
     emit CanceledBuyOrder(msg.sender, buyOrderBook[msg.sender][orderId].collectionAddress, orderId);
   }
