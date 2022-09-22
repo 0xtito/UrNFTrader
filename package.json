@@ -20,16 +20,10 @@
     "> 5%"
   ],
   "dependencies": {
-    "@ethereumjs/common": "^3.0.0",
-    "@ethereumjs/tx": "^4.0.0",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.4",
-    "@opensea/seaport-js": "^1.0.5",
     "@opensea/stream-js": "^0.0.20",
     "@openzeppelin/contracts": "^4.7.3",
-    "@uniswap/v3-periphery": "^1.4.1",
-    "api": "^4.5.2",
     "dotenv": "^16.0.1",
-    "eth-rpc-errors": "^4.0.3",
     "hardhat": "^2.10.2",
     "opensea-js": "^4.0.10",
     "ws": "^8.8.1"
