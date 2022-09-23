@@ -1,6 +1,7 @@
 /** @type import('hardhat/config').HardhatUserConfig */
 require("@nomicfoundation/hardhat-toolbox");
 require('@nomicfoundation/hardhat-network-helpers');
+require("@nomiclabs/hardhat-etherscan");
 require('ethers');
 require('dotenv').config();
 
