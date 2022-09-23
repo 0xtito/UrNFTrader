@@ -1,4 +1,4 @@
-# UrNFTrader
+# UrNFTrader - A NFT Exchange
 
 ## Purpose
 This project was created as my final project for the [Chainshot](https://www.chainshot.com/) bootcamp. As a semi-recovered NFT-degen, I always wondered if you could create an exchange designed for buying and selling NFTs - so I set out to see if you could (spoiler: you can).
@@ -42,9 +42,22 @@ This would also users who do not constantly watch the floor of their favorite pr
 - Create an API endpoint so all pending order's can be stored and listened to without the user being on the app
 - Deploy through a platform like Vercel to allow the app to run continously
 
+## <a name="env"></a>Environmental Variables ([.env](https://github.com/motdotla/dotenv))
+`process.env.PRIVATE_KEY` - Needed to sign the execute order<br />
+<br />
+`process.env.GOERLI_API_URL` - Not really needed since we are using Metamask's `ethereum` provider in the browser, however this can be used as well (may run into errors with OpenseaSDK)
+
+## Run Locally
+Note: You will have to deploy your own version of the contract if you would like to be able to use the app (at least until deploy through Vercel)
+- Install [`nvm`](https://github.com/nvm-sh/nvm), and run `nvm install 16.11.0` and `nvm use 16.11.0`. I don't understand exactly why using the current LTS version (16.17.0) does not work when installing the dependencies, but I believe it is due to opensea-js's dependencies. 
+- `npm install` (can switch back to the current node LTS version after installation)
+- Input the necessary [enviromental variables](#env)
+- Install the [Metamask](https://metamask.io/) plugin
+- Then run `npx parcel app/index.html`
+- Again, to be able to fully use the app - you must deploy your own version of the contract (on goerli).
 
 ### That's all :)
-Thank you to the Chainshot team for giving me the opportunity to be a part of the bootcamp. Been a great learning experience. One step closer to be a true buidler 👷
+Thank you to the Chainshot team for giving me the opportunity to be a part of the bootcamp. Been a great learning experience. One step closer to becoming a buidler 👷
 
 ### 🔗 My Twitter
 [![twitter](https://img.shields.io/badge/twitter-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white)](https://twitter.com/tito_cda)
