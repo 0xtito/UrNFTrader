@@ -6,7 +6,7 @@ import { OpenSeaStreamClient, Network } from '@opensea/stream-js';
 const { OpenSeaSDK, Network: NetworkSDK } = require("opensea-js")
 import { WebSocket } from 'ws';
 require('dotenv').config();
-const apiUrl = process.env.GOERLI_API_URL;
+// const apiUrl = process.env.GOERLI_API_URL;
 const privKey = process.env.PRIVATE_KEY;
 
 export default async function manageListeners(userAddress) {
