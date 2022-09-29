@@ -17,7 +17,6 @@ const privKeyMain = process.env.PRIVATE_KEY;
 const privKey2 = process.env.PRIVATE_KEY2;
 const privKey3 = process.env.PRIVATE_KEY3
 const apiUrl = process.env.GOERLI_API_URL;
-const infuraApiUrl = process.env.RINKEBY_API_URL
 const testAccount2Hard = "0xc53bf942c381A14036675502Ae69A54595f9c2A8";
 const testAccount3Hard = "0x446D078afc01D63D4BB41Da179072954EC3F5719";
 const testTriggerPrice = ethers.utils.parseEther("0.4")
@@ -25,8 +24,6 @@ const maxApprovalValue = BigInt(((2**256) - 1) /(10**18));
 const testTriggerPriceAndFee = BigInt(110000000000000000);
 const baseFee = ethers.utils.parseEther('0.015');
 const apiKey = process.env.GOERLI_API_KEY;
-// const provider = ethers.provider;
-// const provider = new ethers.providers.AlchemyProvider('goerli', apiKey);
 const provider = new ethers.providers.JsonRpcProvider(apiUrl)
 
 console.log(provider);
@@ -35,17 +32,6 @@ const openseaSDK = new OpenSeaSDK(provider, {
   networkName: Network.Goerli,
 });
 
-async function main() {
-  const order = await openseaSDK.api.getOrder({
-    side: 'ask',
-    assetContractAddress: tinyfrensContractAddress,
-    tokenId: 1
-  });
-  console.log(order);
-}
-
-
-main();
 
 it('should get order', async () => {
   const order = await openseaSDK.api.getOrder({
