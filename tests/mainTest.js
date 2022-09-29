@@ -1,8 +1,6 @@
 const { expect } = require('chai');
 const { ethers } = require('hardhat');
 const { OpenSeaSDK, Network } = require("opensea-js")
-
-const WETHabi = require('../app/JSON/WETHabi.json');
 require('dotenv').config();
 
 const tinyfrensContractAddress = "0x22dB3E3828042714ed1144bfb7a6075Bbb1ca7f8";
@@ -20,7 +18,7 @@ const testTriggerPrice = BigInt(100000000000000000);
  */
 
 describe("Testing NftTrader", function() {
-  let nftContract, nftContractAddress, wETHcontract, wETHcontractAddress, ownersAddress, account2Address, account3Address;
+  let nftContract, nftContractAddress, ownersAddress, account2Address, account3Address;
   let owner = new ethers.Wallet(privKeyMain, ethers.provider);
   let account2 = new ethers.Wallet(privKey2, ethers.provider);
   let account3 = new ethers.Wallet(privKey3, ethers.provider);

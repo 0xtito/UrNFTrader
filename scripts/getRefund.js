@@ -21,12 +21,6 @@ async function getRefund() {
   const receipt = await tx.wait();
   console.log(receipt);
 
-  // const tx = {
-  //   from: owner.address,
-  //   to: "0x44CCeb9874Df3974d0D760aEa64B0b411a30F43E",
-  //   data: functionSig
-  // }
-
 }
 
 getRefund();

@@ -1,10 +1,6 @@
-const { expect } = require('chai');
-// const { ethers, network } = require('hardhat');
 const {ethers} = require('ethers');
-const { abi: tinyfrensABI} = require('../NftContract/Tinyfrens.json');
-const { urNFTraderAddress, WETHTokenAddress, multicallAddress } = require('../app/__config.json');
+const { urNFTraderAddress } = require('../app/__config.json');
 const urNFTraderJSON = require("../app/artifacts/contracts/UrNFTraderV1.sol/UrNFTraderV1.json")
-const { ethErrors } = require('eth-rpc-errors');
 const { OpenSeaSDK, Network } = require("opensea-js")
 require('dotenv').config();
 
@@ -44,9 +40,6 @@ const openseaSDK = new OpenSeaSDK(provider, {
 
 async function main() {
   const urNFTrader = await ethers.getContractAt(urNFTraderJSON.abi, urNFTraderAddress);
-  console.log(await owner.getBalance());
-
-  // const urNFTrader = new ethers.ContractFactory(urNFTraderJSON.abi,urNFTraderJSON.bytecode);
 
   const order = await openseaSDK.api.getOrder({
     side: 'ask',
@@ -92,8 +85,7 @@ async function main() {
     parameters.considerations.push(newConsideration);
     considerationItemsTuple.push([newConsideration.itemType, newConsideration.token, newConsideration.identifierOrCriteria, newConsideration.startAmount, newConsideration.endAmount, newConsideration.recipient])
   }
-  // console.log(considerationItemsTuple)
-  // fulfillAdvanced Order
+
   const encodedParams = abi.encode(
     ["tuple( tuple(address, address, tuple(uint8, address, uint256, uint256, uint256 endAmount)[], tuple(uint8, address, uint256, uint256, uint256, address)[], uint8, uint256, uint256, bytes32, uint256, bytes32, uint256), uint120, uint120, bytes, bytes)", "tuple(uint256, uint8, uint256, uint256, bytes32[])[]", "bytes32", "address"],
     [ 
