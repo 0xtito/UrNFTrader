@@ -54,8 +54,6 @@ describe("Testing NftTrader", function() {
         expect(tinyfrens.address).to.equal(tinyfrensContractAddress);
       });
 
-      // it()
-
       it('should be the owner of the UrNFTrader contract', async () => {
         const contractOwner = await urNFTrader.owner();
         expect(contractOwner).to.equal(owner.address);
